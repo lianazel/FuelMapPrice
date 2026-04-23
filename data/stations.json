@@ -1,0 +1,7 @@
+{
+  "generated_at": "1970-01-01T00:00:00+00:00",
+  "source": "https://donnees.roulez-eco.fr/opendata/instantane",
+  "count": 0,
+  "fuels": ["Gazole", "SP95", "SP98", "E10", "E85", "GPLc"],
+  "stations": []
+}

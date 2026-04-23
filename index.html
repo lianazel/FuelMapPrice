@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="FuelMapPrice — Trouvez les stations-service les moins chères autour de vous, à partir des données officielles data.gouv.fr." />
+  <meta name="theme-color" content="#FAF7F2" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0E1412" media="(prefers-color-scheme: dark)" />
+  <title>FuelMapPrice — Le carburant au meilleur prix, près de chez vous</title>
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Tailwind (Play CDN — zero build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media',  // suit la préférence système (prefers-color-scheme)
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF7F2',
+            paper: '#FFFFFF',
+            ink:   '#0F0F0E',
+            'ink-soft': '#52524E',
+            'ink-faint': '#A8A59E',
+            forest:  '#1A3C34',
+            'forest-dark': '#0F2721',
+            flame:   '#E85D04',
+            'flame-soft': '#F8A261',
+            line:    '#E8E2D7',
+          },
+          fontFamily: {
+            display: ['"Bricolage Grotesque"', 'serif'],
+            sans:    ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+            mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="font-sans bg-cream text-ink antialiased min-h-screen">
+
+  <!-- Alpine root -->
+  <div x-data="fuelMapApp()" x-init="init()" x-cloak>
+
+    <!-- Header -->
+    <header class="border-b border-line bg-cream/80 backdrop-blur-sm sticky top-0 z-[1000]">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-4 flex items-center justify-between gap-4">
+        <a href="#" class="flex items-center gap-3 group">
+          <span class="text-2xl">⛽</span>
+          <span class="font-display font-bold text-xl sm:text-2xl tracking-tight leading-none">
+            FuelMap<span class="text-flame">Price</span>
+          </span>
+        </a>
+        <nav class="flex items-center gap-1 sm:gap-2">
+          <button @click="activeTab = 'map'"
+                  :class="activeTab === 'map' ? 'bg-forest text-cream' : 'text-ink-soft hover:text-ink'"
+                  class="px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition">
+            <span class="hidden sm:inline">Carte</span>
+            <span class="sm:hidden">📍</span>
+          </button>
+          <button @click="activeTab = 'trends'"
+                  :class="activeTab === 'trends' ? 'bg-forest text-cream' : 'text-ink-soft hover:text-ink'"
+                  class="px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition">
+            <span class="hidden sm:inline">Tendances</span>
+            <span class="sm:hidden">📈</span>
+          </button>
+          <button @click="activeTab = 'about'"
+                  :class="activeTab === 'about' ? 'bg-forest text-cream' : 'text-ink-soft hover:text-ink'"
+                  class="px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition">
+            <span class="hidden sm:inline">À propos</span>
+            <span class="sm:hidden">ℹ️</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- =================== MAP VIEW =================== -->
+    <section x-show="activeTab === 'map'" class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+
+      <!-- Hero -->
+      <div class="mb-6 lg:mb-8">
+        <p class="text-xs uppercase tracking-[0.2em] text-flame font-semibold mb-2">Carte interactive</p>
+        <h1 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.05] max-w-3xl">
+          Trouvez le carburant <span class="italic text-forest">le moins cher</span> autour de vous.
+        </h1>
+        <p class="mt-3 text-ink-soft max-w-2xl">
+          Données officielles mises à jour chaque heure depuis data.gouv.fr. Aucun compte, aucune pub.
+        </p>
+      </div>
+
+      <!-- Filters bar -->
+      <div class="bg-paper border border-line rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end">
+
+          <!-- City -->
+          <div class="md:col-span-4">
+            <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Ville de référence</label>
+            <div class="relative">
+              <input type="text"
+                     x-model="cityInput"
+                     @keydown.enter.prevent="searchCity()"
+                     placeholder="Ex : Lyon, Toulouse, Lille…"
+                     class="w-full px-4 py-2.5 pr-10 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition text-ink placeholder:text-ink-faint" />
+              <button @click="useGeolocation()"
+                      title="Utiliser ma position"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-line/60 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/><circle cx="12" cy="12" r="9"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fuel -->
+          <div class="md:col-span-3">
+            <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Carburant</label>
+            <select x-model="selectedFuel"
+                    class="w-full px-4 py-2.5 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition">
+              <option value="SP95">SP95</option>
+              <option value="SP98">SP98</option>
+              <option value="Gazole">Gazole</option>
+              <option value="E10">E10</option>
+              <option value="E85">E85</option>
+              <option value="GPLc">GPLc</option>
+            </select>
+          </div>
+
+          <!-- Max price -->
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Prix max (€/L)</label>
+            <input type="number" step="0.01" min="0"
+                   x-model.number="maxPrice"
+                   placeholder="1,85"
+                   class="w-full px-4 py-2.5 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition font-mono" />
+          </div>
+
+          <!-- Radius -->
+          <div class="md:col-span-3">
+            <label class="flex justify-between text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">
+              <span>Rayon</span>
+              <span class="text-forest font-mono" x-text="radius + ' km'"></span>
+            </label>
+            <input type="range" min="5" max="50" step="5" x-model.number="radius"
+                   class="w-full accent-forest" />
+            <div class="flex justify-between text-[10px] text-ink-faint mt-0.5 font-mono">
+              <span>5</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    :class="dataStatus === 'loaded' ? 'bg-forest' : 'bg-flame'"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2"
+                    :class="dataStatus === 'loaded' ? 'bg-forest' : 'bg-flame'"></span>
+            </span>
+            <span class="text-ink-soft" x-text="statusMessage"></span>
+          </div>
+          <span class="hidden sm:inline text-ink-faint">·</span>
+          <span class="text-ink-soft" x-show="filteredStations.length > 0">
+            <strong class="font-mono text-ink" x-text="filteredStations.length"></strong>
+            station<span x-show="filteredStations.length > 1">s</span> trouvée<span x-show="filteredStations.length > 1">s</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Map + List grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
+
+        <!-- Map -->
+        <div class="lg:col-span-3 order-2 lg:order-1">
+          <div id="map" class="w-full h-[50vh] lg:h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border border-line shadow-sm"></div>
+        </div>
+
+        <!-- List -->
+        <aside class="lg:col-span-2 order-1 lg:order-2">
+          <div class="bg-paper border border-line rounded-2xl shadow-sm h-full flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-line flex items-baseline justify-between">
+              <h2 class="font-display font-semibold text-lg">Stations proches</h2>
+              <span class="text-xs text-ink-faint font-mono">Trié par prix ↑</span>
+            </div>
+
+            <div class="overflow-y-auto max-h-[50vh] lg:max-h-[calc(70vh-60px)]">
+              <template x-if="filteredStations.length === 0 && dataStatus === 'loaded'">
+                <div class="p-6 text-center text-ink-soft text-sm">
+                  Aucune station ne correspond aux critères.<br/>
+                  <span class="text-ink-faint">Essayez d'élargir le rayon ou d'augmenter le prix max.</span>
+                </div>
+              </template>
+
+              <template x-for="(station, i) in filteredStations" :key="station.id">
+                <button @click="focusStation(station)"
+                        class="w-full text-left px-5 py-4 border-b border-line/70 last:border-0 hover:bg-cream/60 transition flex gap-3 items-start">
+                  <span class="flex-none w-7 h-7 rounded-full bg-forest/10 text-forest flex items-center justify-center text-xs font-mono font-semibold mt-0.5"
+                        x-text="i + 1"></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-ink truncate" x-text="station.name || ('Station ' + station.id)"></div>
+                    <div class="text-xs text-ink-soft truncate" x-text="station.address + ' · ' + station.city"></div>
+                    <div class="text-xs text-ink-faint mt-0.5 font-mono" x-text="station.distance.toFixed(1) + ' km · maj ' + formatDate(station.updated)"></div>
+                  </div>
+                  <div class="flex-none text-right">
+                    <div class="font-mono font-semibold text-lg leading-none"
+                         :style="`color: ${getPriceColor(station.price)}`"
+                         x-text="station.price.toFixed(3) + '€'"></div>
+                    <div class="text-[10px] uppercase tracking-wider text-ink-faint mt-1" x-text="selectedFuel"></div>
+                  </div>
+                </button>
+              </template>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Legend -->
+      <div class="mt-6 flex flex-wrap gap-2 text-xs">
+        <span class="text-ink-soft mr-2">Légende prix :</span>
+        <span class="px-2 py-1 rounded-full bg-[#1A7F37] text-white font-mono">moins cher</span>
+        <span class="px-2 py-1 rounded-full bg-[#D4A72C] text-white font-mono">médian</span>
+        <span class="px-2 py-1 rounded-full bg-[#CF222E] text-white font-mono">plus cher</span>
+      </div>
+    </section>
+
+    <!-- =================== TRENDS VIEW =================== -->
+    <section x-show="activeTab === 'trends'" class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+
+      <div class="mb-6 lg:mb-8">
+        <p class="text-xs uppercase tracking-[0.2em] text-flame font-semibold mb-2">Tendances des prix</p>
+        <h1 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.05] max-w-3xl">
+          L'évolution du carburant <span class="italic text-forest">en temps quasi-réel</span>.
+        </h1>
+        <p class="mt-3 text-ink-soft max-w-2xl">
+          Moyennes nationales reconstituées à partir des relevés officiels, jour après jour.
+        </p>
+      </div>
+
+      <!-- Trend controls -->
+      <div class="bg-paper border border-line rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Carburant(s)</label>
+            <div class="flex flex-wrap gap-1.5">
+              <template x-for="fuel in ['Tous','SP95','SP98','Gazole','E10','E85','GPLc']" :key="fuel">
+                <button @click="trendFuel = fuel; updateChart()"
+                        :class="trendFuel === fuel ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                        class="px-3 py-1.5 text-sm rounded-full border font-medium transition"
+                        x-text="fuel"></button>
+              </template>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Période</label>
+            <div class="flex flex-wrap gap-1.5">
+              <template x-for="period in [{k:'7', l:'7j'},{k:'30', l:'1 mois'},{k:'90', l:'3 mois'},{k:'180', l:'6 mois'}]" :key="period.k">
+                <button @click="trendPeriod = period.k; updateChart()"
+                        :class="trendPeriod === period.k ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                        class="px-3 py-1.5 text-sm rounded-full border font-medium transition"
+                        x-text="period.l"></button>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+        <template x-for="kpi in kpis" :key="kpi.label">
+          <div class="bg-paper border border-line rounded-2xl p-4">
+            <div class="text-xs text-ink-soft uppercase tracking-wider" x-text="kpi.label"></div>
+            <div class="mt-1 font-mono font-semibold text-2xl" :style="`color: ${kpi.color || '#0F0F0E'}`" x-text="kpi.value"></div>
+            <div class="text-xs text-ink-faint mt-0.5" x-text="kpi.hint"></div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Chart -->
+      <div class="bg-paper border border-line rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div class="h-[55vh] min-h-[340px] relative">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <p class="mt-4 text-xs text-ink-faint">
+        Les points correspondent à la moyenne nationale quotidienne, calculée à partir des stations rapportant un prix ce jour-là.
+      </p>
+    </section>
+
+    <!-- =================== ABOUT VIEW =================== -->
+    <section x-show="activeTab === 'about'" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-16">
+      <p class="text-xs uppercase tracking-[0.2em] text-flame font-semibold mb-2">À propos</p>
+      <h1 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.05]">
+        Une app utile, <span class="italic text-forest">ouverte</span> et sans pub.
+      </h1>
+
+      <div class="prose prose-neutral max-w-none mt-8 space-y-6 text-ink-soft leading-relaxed">
+        <p>
+          <strong class="text-ink">FuelMapPrice</strong> est une application web gratuite qui s'appuie
+          exclusivement sur les données officielles publiées par le gouvernement français
+          sur <a href="https://www.data.gouv.fr/fr/datasets/prix-des-carburants-en-france-flux-instantane-v2/" class="text-forest underline decoration-forest/30 hover:decoration-forest">data.gouv.fr</a>.
+        </p>
+        <p>
+          Les prix sont rafraîchis chaque heure via une <em>GitHub Action</em> qui télécharge le flux
+          officiel, l'agrège et le publie au format JSON. L'application fonctionne entièrement côté
+          navigateur : aucun serveur, aucune collecte de données personnelles.
+        </p>
+        <h2 class="font-display font-semibold text-2xl text-ink mt-10 mb-3">Stack technique</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Front : HTML + Tailwind CSS + Alpine.js (zéro build)</li>
+          <li>Carte : Leaflet.js + tuiles OpenStreetMap</li>
+          <li>Graphiques : Chart.js</li>
+          <li>Géocodage ville : Nominatim (OpenStreetMap)</li>
+          <li>Données prix : data.gouv.fr / donnees.roulez-eco.fr</li>
+          <li>Hébergement : GitHub Pages</li>
+        </ul>
+        <p class="pt-4">
+          Code source et issues sur
+          <a href="https://github.com/" id="repo-link" class="text-forest underline decoration-forest/30 hover:decoration-forest">GitHub</a>.
+          Contributions bienvenues !
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-line mt-16">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row justify-between gap-4 text-sm text-ink-soft">
+        <div>
+          <span class="font-display font-semibold text-ink">FuelMapPrice</span> ·
+          Données © <a href="https://www.data.gouv.fr" class="underline decoration-line hover:decoration-forest">data.gouv.fr</a> ·
+          Carte © <a href="https://www.openstreetmap.org/copyright" class="underline decoration-line hover:decoration-forest">OpenStreetMap</a>
+        </div>
+        <div class="text-ink-faint">Fait avec ⛽ en France</div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+  <!-- App logic -->
+  <script src="js/data.js"></script>
+  <script src="js/geocoding.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/trends.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+/* ===================================================================
+ * FuelMapPrice — ajustements fins
+ * Tailwind gère le gros du travail ; ici uniquement ce qui ne peut pas
+ * être exprimé en classes utilitaires.
+ * =================================================================== */
+
+[x-cloak] { display: none !important; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(26, 60, 52, 0.04), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 95% 5%, rgba(232, 93, 4, 0.05), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Leaflet container — retire le contour bleu par défaut */
+.leaflet-container {
+  background: #EAE6DC;
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  outline: none;
+}
+
+.leaflet-control-zoom a {
+  background: #FFFFFF !important;
+  color: #0F0F0E !important;
+  border: 1px solid #E8E2D7 !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #FAF7F2 !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85) !important;
+  font-size: 10px !important;
+  color: #52524E !important;
+}
+
+/* Marqueur personnalisé */
+.fmp-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-size: 10px;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+}
+.fmp-marker > span {
+  transform: rotate(45deg);
+  line-height: 1;
+  padding-bottom: 4px;
+}
+
+.fmp-marker-ref {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #E85D04;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 0 0 2px #E85D04, 0 4px 14px rgba(232, 93, 4, 0.45);
+}
+
+/* Popup Leaflet */
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  border: 1px solid #E8E2D7;
+  box-shadow: 0 12px 30px rgba(15, 15, 14, 0.12) !important;
+  padding: 2px;
+}
+.leaflet-popup-content {
+  margin: 14px 16px !important;
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #0F0F0E;
+}
+.leaflet-popup-content .fmp-pop-name {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.leaflet-popup-content .fmp-pop-addr {
+  color: #52524E;
+  font-size: 12px;
+}
+.leaflet-popup-content .fmp-pop-price {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-size: 18px;
+  margin-top: 8px;
+}
+.leaflet-popup-content .fmp-pop-fuel {
+  color: #52524E;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.leaflet-popup-content .fmp-pop-time {
+  color: #A8A59E;
+  font-size: 11px;
+  margin-top: 6px;
+  font-family: "JetBrains Mono", monospace;
+}
+.leaflet-popup-tip {
+  box-shadow: none !important;
+}
+
+/* Range input — look plus refined */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #E8E2D7;
+  height: 4px;
+  border-radius: 2px;
+}
+input[type="range"]::-moz-range-track {
+  background: #E8E2D7;
+  height: 4px;
+  border-radius: 2px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #1A3C34;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  margin-top: -6px;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"]::-moz-range-thumb {
+  background: #1A3C34;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Scrollbar subtile pour la liste latérale */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #A8A59E transparent;
+}
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #A8A59E;
+  border-radius: 3px;
+}
+
+/* Arrivée progressive */
+@keyframes fmp-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+section[x-show] {
+  animation: fmp-fade-up 0.4s ease-out;
+}
+
+/* Responsive : réduction du titre sur petit écran */
+@media (max-width: 420px) {
+  h1.font-display { font-size: 1.875rem !important; }
+}
+
+/* ===================================================================
+ * 🌙 DARK MODE — activé automatiquement via prefers-color-scheme
+ * Plutôt que de parsemer le HTML de classes dark:, on repeint les
+ * couleurs Tailwind directement via les classes originales.
+ * =================================================================== */
+@media (prefers-color-scheme: dark) {
+
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(26, 60, 52, 0.25), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 95% 5%, rgba(232, 93, 4, 0.14), transparent 60%);
+    background-color: #0E1412;
+    color: #ECE9E0;
+  }
+
+  /* Fonds */
+  .bg-cream        { background-color: #0E1412 !important; }
+  .bg-paper        { background-color: #161C19 !important; }
+  .bg-cream\/80    { background-color: rgba(14, 20, 18, 0.82) !important; }
+  .bg-cream\/60    { background-color: rgba(22, 28, 25, 0.7) !important; }
+  .bg-forest\/10   { background-color: rgba(26, 60, 52, 0.35) !important; }
+
+  .hover\:bg-cream\/60:hover { background-color: rgba(22, 28, 25, 0.9) !important; }
+  .hover\:bg-line\/60:hover  { background-color: rgba(42, 47, 44, 0.6) !important; }
+
+  /* Textes */
+  .text-ink         { color: #ECE9E0 !important; }
+  .text-ink-soft    { color: #A9A9A1 !important; }
+  .text-ink-faint   { color: #6E6E66 !important; }
+  .text-forest      { color: #5BB89E !important; }   /* vert plus lumineux sur fond sombre */
+  .placeholder\:text-ink-faint::placeholder { color: #6E6E66 !important; }
+
+  /* Bordures */
+  .border-line       { border-color: #2A2F2C !important; }
+  .border-line\/70   { border-color: rgba(42, 47, 44, 0.7) !important; }
+
+  /* Boutons onglets actifs */
+  .bg-forest { background-color: #1A3C34 !important; }
+  .text-cream { color: #ECE9E0 !important; }
+
+  /* Inputs & select */
+  input, select, textarea {
+    color-scheme: dark;
+  }
+
+  /* Highlight flamme reste éclatant */
+  .text-flame { color: #FF7A2E !important; }
+
+  /* Leaflet : assombrir légèrement les tuiles */
+  .leaflet-container { background: #1A1F1C !important; }
+  .leaflet-tile-pane { filter: brightness(0.75) invert(0) hue-rotate(0deg) contrast(1.05); }
+  /* Approche moins agressive : calque sombre par-dessus */
+  .leaflet-tile-pane::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(8, 12, 10, 0.35); pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
+  .leaflet-control-zoom a {
+    background: #161C19 !important;
+    color: #ECE9E0 !important;
+    border-color: #2A2F2C !important;
+  }
+  .leaflet-control-zoom a:hover { background: #1F2622 !important; }
+  .leaflet-control-attribution {
+    background: rgba(22, 28, 25, 0.85) !important;
+    color: #A9A9A1 !important;
+  }
+  .leaflet-control-attribution a { color: #5BB89E !important; }
+
+  /* Popup Leaflet */
+  .leaflet-popup-content-wrapper {
+    background: #161C19 !important;
+    border-color: #2A2F2C !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55) !important;
+  }
+  .leaflet-popup-tip { background: #161C19 !important; }
+  .leaflet-popup-content        { color: #ECE9E0 !important; }
+  .leaflet-popup-content .fmp-pop-addr { color: #A9A9A1 !important; }
+  .leaflet-popup-content .fmp-pop-fuel { color: #A9A9A1 !important; }
+  .leaflet-popup-content .fmp-pop-time { color: #6E6E66 !important; }
+
+  /* Range thumb visible en sombre */
+  input[type="range"]::-webkit-slider-runnable-track,
+  input[type="range"]::-moz-range-track { background: #2A2F2C; }
+  input[type="range"]::-webkit-slider-thumb,
+  input[type="range"]::-moz-range-thumb { background: #5BB89E; border-color: #0E1412; }
+  input[type="range"] { accent-color: #5BB89E; }
+
+  /* Scrollbar */
+  .overflow-y-auto::-webkit-scrollbar-thumb { background: #3A403D; }
+
+  /* Ombres plus subtiles */
+  .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important; }
+}
+

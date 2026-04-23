@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Aperçu de l'application FuelMapPrice" font-family="'Instrument Sans', system-ui, sans-serif">
+  <title>FuelMapPrice — aperçu de l'interface</title>
+  <desc>Capture conceptuelle de l'application montrant les filtres, la carte des stations avec marqueurs colorés par prix, et la liste latérale triée.</desc>
+
+  <defs>
+    <pattern id="streets" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 0 15 L 30 15" stroke="#D8D1C1" stroke-width="0.7"/>
+      <path d="M 15 0 L 15 30" stroke="#D8D1C1" stroke-width="0.7"/>
+    </pattern>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0F0F0E" flood-opacity="0.08"/>
+    </filter>
+    <clipPath id="map-clip">
+      <rect x="40" y="270" width="680" height="410" rx="18"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="720" fill="#FAF7F2"/>
+  <ellipse cx="100" cy="0" rx="600" ry="400" fill="#1A3C34" opacity="0.04"/>
+  <ellipse cx="1150" cy="50" rx="400" ry="300" fill="#E85D04" opacity="0.05"/>
+
+  <!-- Top bar -->
+  <line x1="0" y1="70" x2="1200" y2="70" stroke="#E8E2D7" stroke-width="1"/>
+  <text x="40" y="45" font-family="'Bricolage Grotesque', serif" font-size="22" font-weight="700" fill="#0F0F0E" letter-spacing="-0.5">
+    ⛽ FuelMap<tspan fill="#E85D04">Price</tspan>
+  </text>
+
+  <!-- Nav pills -->
+  <g transform="translate(1030 30)">
+    <rect x="0" y="0" width="64" height="28" rx="14" fill="#1A3C34"/>
+    <text x="32" y="19" font-size="12" font-weight="500" fill="#FAF7F2" text-anchor="middle">Carte</text>
+    <text x="92" y="19" font-size="12" font-weight="500" fill="#52524E" text-anchor="middle">Tendances</text>
+    <text x="158" y="19" font-size="12" font-weight="500" fill="#52524E" text-anchor="middle">À propos</text>
+  </g>
+
+  <!-- Hero -->
+  <text x="40" y="120" font-size="11" font-weight="700" fill="#E85D04" letter-spacing="3">CARTE INTERACTIVE</text>
+  <text x="40" y="172" font-family="'Bricolage Grotesque', serif" font-size="42" font-weight="700" fill="#0F0F0E" letter-spacing="-1.2">
+    Trouvez le carburant <tspan font-style="italic" fill="#1A3C34">le moins cher</tspan>
+  </text>
+  <text x="40" y="212" font-family="'Bricolage Grotesque', serif" font-size="42" font-weight="700" fill="#0F0F0E" letter-spacing="-1.2">
+    autour de vous.
+  </text>
+
+  <!-- Filter bar -->
+  <rect x="40" y="240" width="1120" height="0" /> <!-- spacer -->
+  <g filter="url(#soft-shadow)">
+    <rect x="40" y="240" width="1120" height="0" fill="none"/> <!-- no-op -->
+  </g>
+
+  <!-- Map -->
+  <g filter="url(#soft-shadow)">
+    <rect x="40" y="270" width="680" height="410" rx="18" fill="#EAE6DC" stroke="#E8E2D7"/>
+  </g>
+  <g clip-path="url(#map-clip)">
+    <rect x="40" y="270" width="680" height="410" fill="url(#streets)"/>
+    <!-- River -->
+    <path d="M 20 500 Q 180 470 320 485 T 620 475 T 760 490" stroke="#B8CFD9" stroke-width="18" fill="none" opacity="0.75" stroke-linecap="round"/>
+    <path d="M 20 500 Q 180 470 320 485 T 620 475 T 760 490" stroke="#9DBFCB" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <!-- Main roads -->
+    <path d="M 0 400 L 720 420" stroke="#CAC2B0" stroke-width="4" opacity="0.6"/>
+    <path d="M 360 270 L 380 680" stroke="#CAC2B0" stroke-width="4" opacity="0.6"/>
+
+    <!-- Radius circle -->
+    <circle cx="380" cy="460" r="210" stroke="#1A3C34" stroke-width="1.5" stroke-dasharray="5 6" fill="#1A3C34" fill-opacity="0.04"/>
+    <!-- Reference marker (orange) -->
+    <circle cx="380" cy="460" r="22" fill="none" stroke="#E85D04" stroke-width="2" opacity="0.4"/>
+    <circle cx="380" cy="460" r="11" fill="#E85D04" stroke="#FFFFFF" stroke-width="4"/>
+
+    <!-- Station markers : drop pin (rotated -45°) -->
+    <!-- marker utility : <g transform="translate(x y)"><g transform="rotate(-45)"><path...+text -->
+    <g transform="translate(230 360)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#1A7F37" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.78</text>
+    </g>
+    <g transform="translate(510 340)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#1A7F37" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.80</text>
+    </g>
+    <g transform="translate(290 560)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#D4A72C" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.83</text>
+    </g>
+    <g transform="translate(495 555)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#D4A72C" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.85</text>
+    </g>
+    <g transform="translate(155 595)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#CF222E" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.89</text>
+    </g>
+    <g transform="translate(615 400)">
+      <path d="M 0 0 A 22 22 0 1 1 0 -0.01 L 0 32 Z" transform="rotate(-45) translate(-22 -22)" fill="#CF222E" stroke="#FFFFFF" stroke-width="2.5"/>
+      <text y="5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#FFFFFF" transform="translate(-4 -4)">1.91</text>
+    </g>
+  </g>
+
+  <!-- Zoom ctrl -->
+  <g transform="translate(60 290)">
+    <rect width="28" height="56" rx="6" fill="#FFFFFF" stroke="#E8E2D7"/>
+    <line x1="4" y1="28" x2="24" y2="28" stroke="#E8E2D7"/>
+    <text x="14" y="19" font-size="18" fill="#0F0F0E" text-anchor="middle">+</text>
+    <text x="14" y="46" font-size="18" fill="#0F0F0E" text-anchor="middle">−</text>
+  </g>
+
+  <!-- Status line above map -->
+  <g transform="translate(40 254)">
+    <circle cx="5" cy="-4" r="4" fill="#1A3C34"/>
+    <text x="16" y="0" font-size="13" fill="#52524E">11 842 stations · maj il y a 34 min</text>
+    <text x="270" y="0" font-size="13" fill="#A8A59E">·</text>
+    <text x="285" y="0" font-size="13" fill="#52524E"><tspan font-family="'JetBrains Mono', monospace" font-weight="600" fill="#0F0F0E">28</tspan> stations trouvées</text>
+  </g>
+
+  <!-- Side list panel -->
+  <g filter="url(#soft-shadow)">
+    <rect x="740" y="270" width="420" height="410" rx="18" fill="#FFFFFF" stroke="#E8E2D7"/>
+  </g>
+  <line x1="740" y1="315" x2="1160" y2="315" stroke="#E8E2D7"/>
+  <text x="760" y="300" font-family="'Bricolage Grotesque', serif" font-size="16" font-weight="600" fill="#0F0F0E">Stations proches</text>
+  <text x="1140" y="300" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A8A59E" text-anchor="end">Prix ↑</text>
+
+  <!-- Station rows -->
+  <g font-size="14">
+    <!-- Row 1 -->
+    <g transform="translate(760 345)">
+      <circle cx="12" cy="12" r="12" fill="#1A3C34" fill-opacity="0.1"/>
+      <text x="12" y="16" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#1A3C34" text-anchor="middle">1</text>
+      <text x="36" y="10" font-weight="500" fill="#0F0F0E">Intermarché St-Lazare</text>
+      <text x="36" y="27" font-size="12" fill="#52524E">62 rue St-Lazare, Paris</text>
+      <text x="36" y="42" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A8A59E">1.4 km · maj il y a 2 h</text>
+      <text x="380" y="16" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="600" fill="#1A7F37" text-anchor="end">1.789€</text>
+      <text x="380" y="34" font-size="9" letter-spacing="1.5" fill="#A8A59E" text-anchor="end">SP95</text>
+    </g>
+    <line x1="760" y1="410" x2="1140" y2="410" stroke="#E8E2D7"/>
+
+    <!-- Row 2 -->
+    <g transform="translate(760 425)">
+      <circle cx="12" cy="12" r="12" fill="#1A3C34" fill-opacity="0.1"/>
+      <text x="12" y="16" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#1A3C34" text-anchor="middle">2</text>
+      <text x="36" y="10" font-weight="500" fill="#0F0F0E">Carrefour République</text>
+      <text x="36" y="27" font-size="12" fill="#52524E">14 bd du Temple, Paris</text>
+      <text x="36" y="42" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A8A59E">2.3 km · maj il y a 1 h</text>
+      <text x="380" y="16" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="600" fill="#1A7F37" text-anchor="end">1.801€</text>
+      <text x="380" y="34" font-size="9" letter-spacing="1.5" fill="#A8A59E" text-anchor="end">SP95</text>
+    </g>
+    <line x1="760" y1="490" x2="1140" y2="490" stroke="#E8E2D7"/>
+
+    <!-- Row 3 -->
+    <g transform="translate(760 505)">
+      <circle cx="12" cy="12" r="12" fill="#1A3C34" fill-opacity="0.1"/>
+      <text x="12" y="16" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#1A3C34" text-anchor="middle">3</text>
+      <text x="36" y="10" font-weight="500" fill="#0F0F0E">TotalEnergies Rivoli</text>
+      <text x="36" y="27" font-size="12" fill="#52524E">142 rue de Rivoli, Paris</text>
+      <text x="36" y="42" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A8A59E">3.1 km · maj il y a 45 min</text>
+      <text x="380" y="16" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="600" fill="#D4A72C" text-anchor="end">1.832€</text>
+      <text x="380" y="34" font-size="9" letter-spacing="1.5" fill="#A8A59E" text-anchor="end">SP95</text>
+    </g>
+    <line x1="760" y1="570" x2="1140" y2="570" stroke="#E8E2D7"/>
+
+    <!-- Row 4 -->
+    <g transform="translate(760 585)">
+      <circle cx="12" cy="12" r="12" fill="#1A3C34" fill-opacity="0.1"/>
+      <text x="12" y="16" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#1A3C34" text-anchor="middle">4</text>
+      <text x="36" y="10" font-weight="500" fill="#0F0F0E">Esso Bastille</text>
+      <text x="36" y="27" font-size="12" fill="#52524E">8 bd Beaumarchais, Paris</text>
+      <text x="36" y="42" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A8A59E">4.2 km · maj il y a 3 h</text>
+      <text x="380" y="16" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="600" fill="#CF222E" text-anchor="end">1.894€</text>
+      <text x="380" y="34" font-size="9" letter-spacing="1.5" fill="#A8A59E" text-anchor="end">SP95</text>
+    </g>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(40 705)">
+    <text x="0" y="0" font-size="11" fill="#52524E">Légende prix :</text>
+    <rect x="94" y="-10" width="78" height="16" rx="8" fill="#1A7F37"/>
+    <text x="133" y="2" font-size="10" fill="#FFFFFF" text-anchor="middle" font-family="'JetBrains Mono', monospace">moins cher</text>
+    <rect x="180" y="-10" width="56" height="16" rx="8" fill="#D4A72C"/>
+    <text x="208" y="2" font-size="10" fill="#FFFFFF" text-anchor="middle" font-family="'JetBrains Mono', monospace">médian</text>
+    <rect x="244" y="-10" width="70" height="16" rx="8" fill="#CF222E"/>
+    <text x="279" y="2" font-size="10" fill="#FFFFFF" text-anchor="middle" font-family="'JetBrains Mono', monospace">plus cher</text>
+  </g>
+</svg>
