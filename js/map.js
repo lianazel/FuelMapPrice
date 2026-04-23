@@ -60,8 +60,9 @@ FMP.Map = (function () {
 
     // Cadrage : si on a une bounding box (d\u00e9partement, r\u00e9gion, pays\u2026), on cadre dessus.
     // Sinon, on applique un zoom adapt\u00e9 au rayon (comportement historique pour les villes).
+    map.invalidateSize();
     if (bounds) {
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14, animate: true });
     } else {
       const zoom = radiusKm <= 5  ? 12 :
                    radiusKm <= 10 ? 11 :
