@@ -42,6 +42,9 @@ function fuelMapApp() {
       // Carte init immédiat pour que le viewport soit prêt
       FMP.Map.init('map');
 
+      // Click sur la carte → reverse-geocode + recentrage sur la ville trouvée
+      FMP.Map.onMapClick((lat, lon) => this.handleMapClick(lat, lon));
+
       // Réactivité : dès que filteredStations change, on redessine la carte
       this.$watch('filteredStations', (list) => {
         FMP.Map.renderStations(list, this.selectedFuel);
@@ -158,6 +161,40 @@ function fuelMapApp() {
 
     focusStation(station) {
       FMP.Map.focusStation(station);
+    },
+
+    /**
+     * Click sur la carte : on fait un reverse-geocoding pour identifier la ville,
+     * pré-remplir le champ, et recentrer la recherche dessus.
+     *
+     * Un debounce de 600 ms \u00e9vite de saturer Nominatim en cas de clics r\u00e9p\u00e9t\u00e9s
+     * et laisse l'utilisateur zoomer sans d\u00e9clencher une r\u00e9solution \u00e0 chaque clic.
+     */
+    _mapClickTimer: null,
+    handleMapClick(lat, lon) {
+      clearTimeout(this._mapClickTimer);
+      this._mapClickTimer = setTimeout(async () => {
+        this.statusMessage = 'Identification de la ville\u2026';
+        try {
+          const city = await FMP.Geocoding.reverseGeocode(lat, lon);
+          if (!city) {
+            this.statusMessage = 'Point cliqu\u00e9 hors d\'une zone habit\u00e9e reconnue.';
+            return;
+          }
+          // Mise \u00e0 jour du champ visible + du point de r\u00e9f\u00e9rence
+          this.cityInput = city;
+          this.refPoint  = { lat, lon, label: city };
+          FMP.Map.setReference(lat, lon, city, this.radius);
+
+          if (this.dataStatus === 'loaded') {
+            this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${city}`;
+          }
+          // Le watch sur filteredStations redessinera les marqueurs automatiquement
+        } catch (err) {
+          console.warn('reverse-geocode \u00e9chou\u00e9 :', err);
+          this.statusMessage = 'Identification de la ville indisponible.';
+        }
+      }, 600);
     },
 
     // -------- Tendances --------

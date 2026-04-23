@@ -119,6 +119,22 @@ FMP.Map = (function () {
     m.openPopup();
   }
 
+  /**
+   * Abonne un callback aux clics utilisateur sur le fond de carte.
+   * Les clics sur les marqueurs / popups sont automatiquement ignorés par Leaflet
+   * (ils stoppent la propagation vers le conteneur de la carte).
+   *
+   * Le callback reçoit (lat, lon).
+   */
+  function onMapClick(callback) {
+    if (!map) return;
+    map.on('click', (e) => {
+      if (typeof callback === 'function') {
+        callback(e.latlng.lat, e.latlng.lng);
+      }
+    });
+  }
+
   function escapeHtml(str) {
     if (str == null) return '';
     return String(str)
@@ -135,6 +151,7 @@ FMP.Map = (function () {
     setReference,
     renderStations,
     focusStation,
+    onMapClick,
     priceColor,
   };
 })();

@@ -139,10 +139,18 @@
           <!-- Max price -->
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1.5">Prix max (€/L)</label>
-            <input type="number" step="0.01" min="0"
-                   x-model.number="maxPrice"
-                   placeholder="1,85"
-                   class="w-full px-4 py-2.5 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition font-mono" />
+            <div class="relative">
+              <input type="number" step="0.05" min="0.5" max="3"
+                     x-model.number.lazy="maxPrice"
+                     placeholder="ex : 1,85"
+                     class="w-full px-4 py-2.5 pr-8 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition font-mono" />
+              <button x-show="maxPrice"
+                      @click="maxPrice = null"
+                      title="Effacer le prix max"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-line/60 text-ink-faint hover:text-ink transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
           </div>
 
           <!-- Radius -->
@@ -184,6 +192,10 @@
         <!-- Map -->
         <div class="lg:col-span-3 order-2 lg:order-1">
           <div id="map" class="w-full h-[50vh] lg:h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border border-line shadow-sm"></div>
+          <p class="mt-2 text-xs text-ink-faint flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Astuce : cliquez n'importe où sur la carte pour recentrer la recherche sur cette ville.
+          </p>
         </div>
 
         <!-- List -->

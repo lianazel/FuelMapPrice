@@ -49,14 +49,16 @@ FMP.Geocoding = (function () {
     const params = new URLSearchParams({
       lat, lon,
       format: 'json',
-      zoom: '10',
+      // zoom 12 = niveau ville/commune (10 \u00e9tait trop large, remontait au d\u00e9partement)
+      zoom: '12',
       addressdetails: '1',
     });
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`);
     if (!res.ok) return null;
     const data = await res.json();
     if (!data || !data.address) return null;
-    return data.address.city || data.address.town || data.address.village || data.address.municipality || null;
+    const a = data.address;
+    return a.city || a.town || a.village || a.municipality || a.suburb || a.county || null;
   }
 
   return { geocodeCity, reverseGeocode };
