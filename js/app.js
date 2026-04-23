@@ -15,10 +15,11 @@ function fuelMapApp() {
 
     // -------- Filtres / état carte --------
     cityInput: 'Paris',
-    refPoint: null,            // {lat, lon, label}
+    refPoint: null,            // {lat, lon, label, scope}
     selectedFuel: 'SP95',
     maxPrice: null,
     radius: 10,
+    _lastSearchedCity: null,   // m\u00e9mo pour \u00e9viter les recherches redondantes (blur apr\u00e8s Entr\u00e9e)
 
     // -------- Tendances --------
     trendFuel: 'Tous',
@@ -107,52 +108,78 @@ function fuelMapApp() {
     async searchCity() {
       const q = this.cityInput.trim();
       if (!q) return;
+      // \u00c9vite les recherches redondantes (blur apr\u00e8s Entr\u00e9e, m\u00eame valeur)
+      if (q === this._lastSearchedCity) return;
+
       try {
-        this.statusMessage = 'Recherche de la ville…';
+        this.statusMessage = 'Recherche de la zone\u2026';
         const loc = await FMP.Geocoding.geocodeCity(q);
         if (!loc) {
-          this.statusMessage = `Ville « ${q} » introuvable.`;
+          this.statusMessage = `Lieu \u00ab ${q} \u00bb introuvable.`;
           return;
         }
-        this.refPoint = { lat: loc.lat, lon: loc.lon, label: q };
-        FMP.Map.setReference(loc.lat, loc.lon, q, this.radius);
+        this._lastSearchedCity = q;
 
-        // Actualise le statut en gardant l'info volumétrique
-        if (this.dataStatus === 'loaded') {
-          this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations · centré sur ${q}`;
+        // Selon la nature du lieu, on adapte le rayon de recherche pour que
+        // l'utilisateur voie tout de suite un ensemble pertinent de stations.
+        // Rappel : le slider va de 5 \u00e0 50 km, on reste dans cette plage.
+        const scopeToRadius = {
+          country:    50,
+          region:     50,   // ex : \u00cele-de-France
+          department: 40,   // ex : Seine-et-Marne
+          city:       this.radius,  // on garde le choix de l'utilisateur
+        };
+        const autoRadius = scopeToRadius[loc.scope] ?? this.radius;
+
+        // Si on a auto-ajust\u00e9 (d\u00e9partement/r\u00e9gion), on met \u00e0 jour le slider visible.
+        if (loc.scope !== 'city' && autoRadius !== this.radius) {
+          this.radius = autoRadius;
         }
 
-        // Redessine les marqueurs (watch sur filteredStations le fait, mais on force si jamais)
+        this.refPoint = { lat: loc.lat, lon: loc.lon, label: q, scope: loc.scope };
+        // On passe la bounding box pour un cadrage naturel (d\u00e9partement vu en entier, etc.)
+        FMP.Map.setReference(loc.lat, loc.lon, q, this.radius, loc.bounds);
+
+        if (this.dataStatus === 'loaded') {
+          const scopeLabel = {
+            country:    'France enti\u00e8re',
+            region:     `r\u00e9gion ${q}`,
+            department: `d\u00e9partement ${q}`,
+            city:       q,
+          }[loc.scope] || q;
+          this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${scopeLabel}`;
+        }
+
         FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
       } catch (e) {
         console.error(e);
-        this.statusMessage = 'Géocodage indisponible. Réessayez dans quelques secondes.';
+        this.statusMessage = 'G\u00e9ocodage indisponible. R\u00e9essayez dans quelques secondes.';
       }
     },
 
     useGeolocation() {
       if (!navigator.geolocation) {
-        this.statusMessage = 'La géolocalisation n\'est pas supportée par ce navigateur.';
+        this.statusMessage = 'La g\u00e9olocalisation n\'est pas support\u00e9e par ce navigateur.';
         return;
       }
-      this.statusMessage = 'Localisation en cours…';
+      this.statusMessage = 'Localisation en cours\u2026';
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude: lat, longitude: lon } = pos.coords;
           let label = 'Ma position';
           try {
             const city = await FMP.Geocoding.reverseGeocode(lat, lon);
-            if (city) { label = city; this.cityInput = city; }
+            if (city) { label = city; this.cityInput = city; this._lastSearchedCity = city; }
           } catch {}
-          this.refPoint = { lat, lon, label };
+          this.refPoint = { lat, lon, label, scope: 'city' };
           FMP.Map.setReference(lat, lon, label, this.radius);
           if (this.dataStatus === 'loaded') {
-            this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations · centré sur ${label}`;
+            this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${label}`;
           }
           FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
         },
         (err) => {
-          this.statusMessage = 'Géolocalisation refusée ou indisponible.';
+          this.statusMessage = 'G\u00e9olocalisation refus\u00e9e ou indisponible.';
           console.warn(err);
         },
         { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
@@ -181,9 +208,19 @@ function fuelMapApp() {
             this.statusMessage = 'Point cliqu\u00e9 hors d\'une zone habit\u00e9e reconnue.';
             return;
           }
+
+          // Si on venait d'une vue large (d\u00e9partement/r\u00e9gion/pays), le clic carte
+          // est le signal qu'on veut maintenant zoomer sur une ville pr\u00e9cise :
+          // on remet un rayon "local" (10 km) plus pertinent qu'un rayon d\u00e9partemental.
+          const wasWideView = this.refPoint && this.refPoint.scope && this.refPoint.scope !== 'city';
+          if (wasWideView) {
+            this.radius = 10;
+          }
+
           // Mise \u00e0 jour du champ visible + du point de r\u00e9f\u00e9rence
           this.cityInput = city;
-          this.refPoint  = { lat, lon, label: city };
+          this._lastSearchedCity = city; // \u00e9vite que le blur ult\u00e9rieur re-cherche inutilement
+          this.refPoint  = { lat, lon, label: city, scope: 'city' };
           FMP.Map.setReference(lat, lon, city, this.radius);
 
           if (this.dataStatus === 'loaded') {

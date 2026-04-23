@@ -27,7 +27,13 @@ FMP.Map = (function () {
 
   function getMap() { return map; }
 
-  function setReference(lat, lon, label, radiusKm) {
+  /**
+   * Positionne le marqueur orange de r\u00e9f\u00e9rence et dessine le cercle de rayon.
+   * Accepte en plus un `bounds` (bounding box Leaflet [[sud, ouest], [nord, est]])
+   * pour cadrer naturellement la carte sur une zone \u2014 particuli\u00e8rement utile
+   * quand l'utilisateur tape un d\u00e9partement ou une r\u00e9gion.
+   */
+  function setReference(lat, lon, label, radiusKm, bounds) {
     if (refMarker) { refMarker.remove(); refMarker = null; }
     if (radiusCircle) { radiusCircle.remove(); radiusCircle = null; }
 
@@ -39,7 +45,7 @@ FMP.Map = (function () {
     });
 
     refMarker = L.marker([lat, lon], { icon, zIndexOffset: 1000 })
-      .bindTooltip(label || 'Position de référence', { direction: 'top', offset: [0, -10] })
+      .bindTooltip(label || 'Position de r\u00e9f\u00e9rence', { direction: 'top', offset: [0, -10] })
       .addTo(map);
 
     radiusCircle = L.circle([lat, lon], {
@@ -52,13 +58,18 @@ FMP.Map = (function () {
       dashArray: '4, 6',
     }).addTo(map);
 
-    // Zoom adapté au rayon
-    const zoom = radiusKm <= 5  ? 12 :
-                 radiusKm <= 10 ? 11 :
-                 radiusKm <= 20 ? 10 :
-                 radiusKm <= 30 ? 10 :
-                                   9 ;
-    map.setView([lat, lon], zoom);
+    // Cadrage : si on a une bounding box (d\u00e9partement, r\u00e9gion, pays\u2026), on cadre dessus.
+    // Sinon, on applique un zoom adapt\u00e9 au rayon (comportement historique pour les villes).
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+    } else {
+      const zoom = radiusKm <= 5  ? 12 :
+                   radiusKm <= 10 ? 11 :
+                   radiusKm <= 20 ? 10 :
+                   radiusKm <= 30 ? 10 :
+                                     9 ;
+      map.setView([lat, lon], zoom);
+    }
   }
 
   /**

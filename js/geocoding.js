@@ -23,23 +23,54 @@ FMP.Geocoding = (function () {
       limit: '1',
       countrycodes: 'fr',
       addressdetails: '0',
+      // on demande la bounding box pour pouvoir "cadrer" naturellement
+      // sur une ville, un d\u00e9partement, une r\u00e9gion ou le pays entier
+      polygon_geojson: '0',
+      extratags: '0',
+      namedetails: '0',
     });
 
     const res = await fetch(`${ENDPOINT}?${params.toString()}`, {
       headers: {
-        // Nominatim demande un User-Agent descriptif ;
-        // côté navigateur on ne peut pas le modifier, donc un Referer suffit.
         'Accept': 'application/json',
       },
     });
-    if (!res.ok) throw new Error('Géocodage indisponible');
+    if (!res.ok) throw new Error('G\u00e9ocodage indisponible');
     const data = await res.json();
     if (!data || data.length === 0) return null;
     const top = data[0];
+
+    // Nominatim nous dit dans `addresstype` ou `type` / `class` ce qu'il a trouv\u00e9 :
+    // - "city" / "town" / "village" / "municipality" \u2192 une commune \u2192 recherche cibl\u00e9e
+    // - "county" / "state_district" \u2192 un d\u00e9partement \u2192 vue large
+    // - "state" \u2192 une r\u00e9gion \u2192 vue tr\u00e8s large
+    // - "country" \u2192 tout le pays
+    // On traduit \u00e7a en un "scope" exploitable par l'app.
+    const addressType = (top.addresstype || top.type || '').toLowerCase();
+    const placeClass  = (top.class || '').toLowerCase();
+    let scope = 'city';  // par d\u00e9faut, on consid\u00e8re que c'est une commune
+    if (addressType === 'country' || placeClass === 'boundary' && addressType === 'country') {
+      scope = 'country';
+    } else if (addressType === 'state' || addressType === 'region') {
+      scope = 'region';
+    } else if (['county', 'state_district', 'province', 'department'].includes(addressType)) {
+      scope = 'department';
+    }
+
+    // La bounding box Nominatim : [south, north, west, east]
+    // Leaflet veut [[sud, ouest], [nord, est]] pour fitBounds.
+    let bounds = null;
+    if (Array.isArray(top.boundingbox) && top.boundingbox.length === 4) {
+      const [s, n, w, e] = top.boundingbox.map(parseFloat);
+      bounds = [[s, w], [n, e]];
+    }
+
     const out = {
       lat: parseFloat(top.lat),
       lon: parseFloat(top.lon),
       displayName: top.display_name,
+      scope,
+      bounds,
     };
     cache.set(key, out);
     return out;

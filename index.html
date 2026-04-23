@@ -112,7 +112,8 @@
               <input type="text"
                      x-model="cityInput"
                      @keydown.enter.prevent="searchCity()"
-                     placeholder="Ex : Lyon, Toulouse, Lille…"
+                     @blur="searchCity()"
+                     placeholder="Ex : Lyon, Seine-et-Marne, Bretagne…"
                      class="w-full px-4 py-2.5 pr-10 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition text-ink placeholder:text-ink-faint" />
               <button @click="useGeolocation()"
                       title="Utiliser ma position"
