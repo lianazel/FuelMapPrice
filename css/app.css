@@ -8,6 +8,12 @@
 
 html { scroll-behavior: smooth; }
 
+/* Inputs : force color-scheme pour que le select natif s'adapte au th\u00e8me syst\u00e8me
+   sur iOS Safari notamment (sinon texte sombre sur fond sombre illisible) */
+select, input, textarea {
+  color-scheme: light dark;
+}
+
 body {
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
@@ -112,6 +118,26 @@ body {
   margin-top: 6px;
   font-family: "JetBrains Mono", monospace;
 }
+.leaflet-popup-content .fmp-pop-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: #1A3C34;
+  color: #FAF7F2 !important;
+  border-radius: 20px;
+  text-decoration: none !important;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+.leaflet-popup-content .fmp-pop-route:hover {
+  background: #0F2721;
+}
+.leaflet-popup-content .fmp-pop-route svg {
+  flex: none;
+}
 .leaflet-popup-tip {
   box-shadow: none !important;
 }
@@ -178,6 +204,253 @@ section[x-show] {
 /* Responsive : réduction du titre sur petit écran */
 @media (max-width: 420px) {
   h1.font-display { font-size: 1.875rem !important; }
+}
+
+/* ===================================================================
+ * Autocomplete de villes
+ * =================================================================== */
+.fmp-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 15, 14, 0.12);
+  z-index: 900;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.fmp-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #F1EEE6;
+  transition: background 0.1s ease;
+}
+.fmp-suggestion-item:last-child { border-bottom: 0; }
+.fmp-suggestion-item:hover,
+.fmp-suggestion-item.active {
+  background: #F6F2E9;
+}
+
+.fmp-suggestion-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: #0F0F0E;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fmp-suggestion-scope {
+  flex: none;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #F1EEE6;
+  color: #52524E;
+  font-family: "JetBrains Mono", monospace;
+}
+.fmp-suggestion-scope.scope-city       { background: #E6F4EA; color: #1A7F37; }
+.fmp-suggestion-scope.scope-department { background: #FFF4E0; color: #B06500; }
+.fmp-suggestion-scope.scope-region     { background: #EAE6FB; color: #6B40C4; }
+.fmp-suggestion-scope.scope-country    { background: #FFE4E6; color: #B53A2A; }
+
+/* ===================================================================
+ * Panneau pr\u00e9f\u00e9rences (popover)
+ * =================================================================== */
+.fmp-prefs-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 14, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 20px 20px;
+}
+
+.fmp-prefs-panel {
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+  border-radius: 18px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(15, 15, 14, 0.25);
+  padding: 24px;
+  animation: fmp-prefs-in 0.2s ease-out;
+}
+
+@keyframes fmp-prefs-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fmp-prefs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.fmp-prefs-title {
+  font-family: "Bricolage Grotesque", serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0F0F0E;
+}
+.fmp-prefs-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #52524E;
+  border-radius: 6px;
+}
+.fmp-prefs-close:hover { background: #F1EEE6; color: #0F0F0E; }
+
+.fmp-prefs-intro {
+  font-size: 13px;
+  color: #52524E;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.fmp-prefs-section {
+  padding: 14px 0;
+  border-top: 1px solid #F1EEE6;
+}
+.fmp-prefs-section:first-of-type { border-top: 0; }
+
+.fmp-prefs-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.fmp-prefs-row-text { flex: 1; min-width: 0; }
+.fmp-prefs-label { font-weight: 500; color: #0F0F0E; font-size: 14px; }
+.fmp-prefs-hint  { font-size: 12px; color: #52524E; margin-top: 2px; line-height: 1.45; }
+
+/* Switch (toggle) */
+.fmp-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex: none;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.fmp-switch input { opacity: 0; width: 0; height: 0; }
+.fmp-switch-slider {
+  position: absolute;
+  inset: 0;
+  background: #D8D1C1;
+  border-radius: 24px;
+  transition: background 0.2s ease;
+}
+.fmp-switch-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+.fmp-switch input:checked + .fmp-switch-slider { background: #1A3C34; }
+.fmp-switch input:checked + .fmp-switch-slider::before { transform: translateX(20px); }
+
+.fmp-prefs-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #F1EEE6;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fmp-prefs-clear {
+  background: none;
+  border: 1px solid #E8E2D7;
+  color: #52524E;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.fmp-prefs-clear:hover { border-color: #CF222E; color: #CF222E; }
+
+/* ===================================================================
+ * Bloc d'aide "G\u00e9olocalisation refus\u00e9e"
+ * =================================================================== */
+.fmp-geo-help {
+  background: #FFF8E8;
+  border: 1px solid #F1DB9E;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #6B4F10;
+  line-height: 1.5;
+}
+.fmp-geo-help strong { color: #3D2D05; }
+.fmp-geo-help ul { margin: 6px 0 0 18px; padding: 0; }
+.fmp-geo-help li { margin: 2px 0; }
+
+/* ===================================================================
+ * Mode sombre pour les nouveaux \u00e9l\u00e9ments
+ * =================================================================== */
+@media (prefers-color-scheme: dark) {
+  .fmp-suggestions {
+    background: #161C19;
+    border-color: #2A2F2C;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  .fmp-suggestion-item { border-bottom-color: #2A2F2C; }
+  .fmp-suggestion-item:hover,
+  .fmp-suggestion-item.active { background: #1F2622; }
+  .fmp-suggestion-label { color: #ECE9E0; }
+  .fmp-suggestion-scope { background: #2A2F2C; color: #A9A9A1; }
+  .fmp-suggestion-scope.scope-city       { background: rgba(26, 127, 55, 0.2);  color: #6FCF8B; }
+  .fmp-suggestion-scope.scope-department { background: rgba(176, 101, 0, 0.25); color: #E8A84F; }
+  .fmp-suggestion-scope.scope-region     { background: rgba(107, 64, 196, 0.25); color: #B796F0; }
+  .fmp-suggestion-scope.scope-country    { background: rgba(181, 58, 42, 0.25);  color: #E58873; }
+
+  .fmp-prefs-panel {
+    background: #161C19;
+    border-color: #2A2F2C;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  .fmp-prefs-title { color: #ECE9E0; }
+  .fmp-prefs-close:hover { background: #1F2622; color: #ECE9E0; }
+  .fmp-prefs-intro { color: #A9A9A1; }
+  .fmp-prefs-section { border-top-color: #2A2F2C; }
+  .fmp-prefs-label { color: #ECE9E0; }
+  .fmp-prefs-hint { color: #A9A9A1; }
+  .fmp-prefs-footer { border-top-color: #2A2F2C; }
+  .fmp-prefs-clear { background: transparent; border-color: #3A403D; color: #A9A9A1; }
+  .fmp-prefs-clear:hover { border-color: #E58873; color: #E58873; }
+  .fmp-switch-slider { background: #3A403D; }
+
+  .fmp-geo-help {
+    background: rgba(241, 219, 158, 0.08);
+    border-color: rgba(241, 219, 158, 0.25);
+    color: #E8D9AA;
+  }
+  .fmp-geo-help strong { color: #F4E4B8; }
+
+  .leaflet-popup-content .fmp-pop-route { background: #2E6054; color: #ECE9E0 !important; }
+  .leaflet-popup-content .fmp-pop-route:hover { background: #3B7A6C; }
 }
 
 /* ===================================================================

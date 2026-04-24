@@ -106,14 +106,26 @@ FMP.Map = (function () {
       });
 
       const updated = s.updated ? new Date(s.updated) : null;
-      const updatedStr = updated ? updated.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }) + ' ' + updated.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '—';
+      const updatedStr = updated ? updated.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }) + ' ' + updated.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '\u2014';
+
+      // URL d'itin\u00e9raire : Apple Plans sur iOS, Google Maps partout ailleurs.
+      // Le navigateur iOS reconna\u00eet maps:// et ouvre nativement l'app ;
+      // sinon on utilise l'URL universelle Google Maps (qui fonctionne aussi dans les autres syst\u00e8mes).
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const routeUrl = isIOS
+        ? `https://maps.apple.com/?daddr=${s.lat},${s.lon}&dirflg=d`
+        : `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}&travelmode=driving`;
 
       const popupHtml = `
         <div class="fmp-pop-name">${escapeHtml(s.name || ('Station ' + s.id))}</div>
         <div class="fmp-pop-addr">${escapeHtml(s.address || '')}${s.city ? ', ' + escapeHtml(s.city) : ''}</div>
-        <div class="fmp-pop-price" style="color:${color}">${s.price.toFixed(3)} €</div>
-        <div class="fmp-pop-fuel">${escapeHtml(fuelLabel)} · ${s.distance.toFixed(1)} km</div>
+        <div class="fmp-pop-price" style="color:${color}">${s.price.toFixed(3)} \u20ac</div>
+        <div class="fmp-pop-fuel">${escapeHtml(fuelLabel)} \u00b7 ${s.distance.toFixed(1)} km</div>
         <div class="fmp-pop-time">maj ${updatedStr}</div>
+        <a class="fmp-pop-route" href="${routeUrl}" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          <span>Itin\u00e9raire</span>
+        </a>
       `;
 
       const m = L.marker([s.lat, s.lon], { icon })
@@ -157,6 +169,23 @@ FMP.Map = (function () {
       .replace(/'/g, '&#39;');
   }
 
+  /**
+   * Force un rafra\u00eechissement complet de la carte.
+   * Utilis\u00e9 par le bouton "Recharger la carte" : corrige les cas o\u00f9
+   * le viewport a chang\u00e9 (Safari iOS qui cache la barre d'URL, rotation,
+   * bascule entre onglets) et que Leaflet n'a pas d\u00e9tect\u00e9 le changement.
+   */
+  function refresh(refPoint, radiusKm, bounds) {
+    if (!map) return;
+    map.invalidateSize();
+    if (refPoint) {
+      setReference(refPoint.lat, refPoint.lon, refPoint.label, radiusKm, bounds);
+    } else {
+      // Aucun point de r\u00e9f\u00e9rence : on recentre sur Paris par d\u00e9faut
+      map.setView([48.8566, 2.3522], 11);
+    }
+  }
+
   return {
     init,
     getMap,
@@ -165,5 +194,6 @@ FMP.Map = (function () {
     focusStation,
     onMapClick,
     priceColor,
+    refresh,
   };
 })();

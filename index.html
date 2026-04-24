@@ -83,6 +83,11 @@
             <span class="hidden sm:inline">À propos</span>
             <span class="sm:hidden">ℹ️</span>
           </button>
+          <button @click="openPrefs()"
+                  title="Préférences"
+                  class="ml-1 p-2 rounded-full text-ink-soft hover:text-ink hover:bg-line/60 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </nav>
       </div>
     </header>
@@ -111,8 +116,11 @@
             <div class="relative">
               <input type="text"
                      x-model="cityInput"
-                     @keydown.enter.prevent="searchCity()"
-                     @blur="searchCity()"
+                     @input="onCityInput()"
+                     @keydown.enter.prevent="searchCity(); showSuggestions = false"
+                     @keydown.escape="showSuggestions = false"
+                     @blur="closeSuggestionsSoon(); searchCity()"
+                     autocomplete="off"
                      placeholder="Ex : Lyon, Seine-et-Marne, Bretagne…"
                      class="w-full px-4 py-2.5 pr-10 rounded-xl border border-line bg-cream/60 focus:bg-paper focus:border-forest focus:ring-2 focus:ring-forest/20 outline-none transition text-ink placeholder:text-ink-faint" />
               <button @click="useGeolocation()"
@@ -120,6 +128,21 @@
                       class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-line/60 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/><circle cx="12" cy="12" r="9"/></svg>
               </button>
+
+              <!-- Autocomplete suggestions -->
+              <div x-show="showSuggestions && suggestions.length > 0"
+                   x-transition.opacity
+                   class="fmp-suggestions"
+                   @mousedown.prevent>
+                <template x-for="sugg in suggestions" :key="sugg.lat + ',' + sugg.lon">
+                  <div class="fmp-suggestion-item" @click="selectSuggestion(sugg)">
+                    <div class="fmp-suggestion-label" x-text="sugg.label"></div>
+                    <div class="fmp-suggestion-scope"
+                         :class="'scope-' + sugg.scope"
+                         x-text="{city:'ville', department:'dép.', region:'région', country:'pays'}[sugg.scope] || sugg.scope"></div>
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
 
@@ -185,6 +208,27 @@
             station<span x-show="filteredStations.length > 1">s</span> trouvée<span x-show="filteredStations.length > 1">s</span>
           </span>
         </div>
+
+        <!-- Aide géolocalisation refusée (iOS Safari notamment) -->
+        <div x-show="geoError" x-transition class="fmp-geo-help mt-3">
+          <strong>🔒 Géolocalisation indisponible</strong>
+          <div x-show="geoError === 'denied'" class="mt-1">
+            Votre navigateur a refusé l'accès à votre position. Pour réactiver :
+            <ul>
+              <li><strong>iOS Safari :</strong> Réglages → Confidentialité → Services de localisation → Safari → « Lorsque l'app est active »</li>
+              <li><strong>Safari barre d'adresse :</strong> icône AA → Réglages pour ce site → Localisation → Autoriser</li>
+              <li><strong>Chrome / Firefox :</strong> icône 🔒 à gauche de l'URL → Autoriser la localisation</li>
+            </ul>
+            Vous pouvez aussi saisir manuellement votre ville ci-dessus.
+          </div>
+          <div x-show="geoError === 'unavailable'" class="mt-1">
+            Votre position n'a pas pu être déterminée (signal GPS faible ou service indisponible). Saisissez votre ville manuellement.
+          </div>
+          <div x-show="geoError === 'timeout'" class="mt-1">
+            La localisation a pris trop de temps. Réessayez, ou saisissez votre ville manuellement.
+          </div>
+          <button @click="geoError = null" class="mt-2 text-xs underline">Fermer ce message</button>
+        </div>
       </div>
 
       <!-- Map + List grid -->
@@ -193,10 +237,18 @@
         <!-- Map -->
         <div class="lg:col-span-3 order-2 lg:order-1">
           <div id="map" class="w-full h-[50vh] lg:h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border border-line shadow-sm"></div>
-          <p class="mt-2 text-xs text-ink-faint flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            Astuce : cliquez n'importe où sur la carte pour recentrer la recherche sur cette ville.
-          </p>
+          <div class="mt-2 flex items-center justify-between gap-3 flex-wrap">
+            <p class="text-xs text-ink-faint flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Astuce : cliquez n'importe où sur la carte pour recentrer la recherche sur cette ville.
+            </p>
+            <button @click="reloadMap()"
+                    title="Recharger la carte"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border border-line bg-paper hover:bg-cream/60 hover:border-forest/40 text-ink-soft hover:text-ink transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
+              Recharger la carte
+            </button>
+          </div>
         </div>
 
         <!-- List -->
@@ -347,6 +399,71 @@
       </div>
     </section>
 
+    <!-- ==================== PANNEAU PRÉFÉRENCES ==================== -->
+    <div x-show="prefsOpen"
+         x-transition.opacity
+         @click.self="closePrefs()"
+         @keydown.escape.window="closePrefs()"
+         class="fmp-prefs-overlay">
+      <div class="fmp-prefs-panel" @click.stop>
+        <div class="fmp-prefs-header">
+          <div class="fmp-prefs-title">Préférences</div>
+          <button @click="closePrefs()" class="fmp-prefs-close" title="Fermer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="fmp-prefs-intro">
+          Personnalisez votre expérience FuelMapPrice. Vos choix peuvent être mémorisés sur cet appareil, ou rester actifs uniquement pour cette session.
+        </p>
+
+        <!-- Section 1 : Suggestions de villes -->
+        <div class="fmp-prefs-section">
+          <div class="fmp-prefs-row">
+            <div class="fmp-prefs-row-text">
+              <div class="fmp-prefs-label">Suggestions intelligentes de villes</div>
+              <div class="fmp-prefs-hint">
+                Affiche des propositions pendant la saisie dans le champ « Ville de référence ». Source : OpenStreetMap / Nominatim.
+              </div>
+            </div>
+            <label class="fmp-switch">
+              <input type="checkbox"
+                     :checked="autocompleteEnabled"
+                     @change="togglePref('autocomplete', $event.target.checked)" />
+              <span class="fmp-switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 2 : Persistance -->
+        <div class="fmp-prefs-section">
+          <div class="fmp-prefs-row">
+            <div class="fmp-prefs-row-text">
+              <div class="fmp-prefs-label">Mémoriser mes préférences sur cet appareil</div>
+              <div class="fmp-prefs-hint">
+                Si activé, vos choix sont conservés dans le stockage local de votre navigateur. Aucune donnée ne quitte votre appareil et rien n'est envoyé à un serveur.
+              </div>
+            </div>
+            <label class="fmp-switch">
+              <input type="checkbox"
+                     :checked="persistPrefs"
+                     @change="togglePersist($event.target.checked)" />
+              <span class="fmp-switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="fmp-prefs-footer">
+          <button @click="clearPrefs()" class="fmp-prefs-clear" title="Réinitialiser toutes les préférences">
+            Effacer mes préférences
+          </button>
+          <button @click="closePrefs()"
+                  class="px-4 py-1.5 rounded-full bg-forest text-cream text-xs font-medium hover:bg-forest-dark transition">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="border-t border-line mt-16">
       <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row justify-between gap-4 text-sm text-ink-soft">
@@ -372,6 +489,7 @@
   <script src="js/geocoding.js"></script>
   <script src="js/map.js"></script>
   <script src="js/trends.js"></script>
+  <script src="js/preferences.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

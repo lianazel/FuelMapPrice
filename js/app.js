@@ -11,7 +11,7 @@ function fuelMapApp() {
     stations: [],
     history: null,
     dataStatus: 'loading',     // 'loading' | 'loaded' | 'error'
-    statusMessage: 'Chargement des données…',
+    statusMessage: 'Chargement des donn\u00e9es\u2026',
 
     // -------- Filtres / état carte --------
     cityInput: 'Paris',
@@ -25,6 +25,18 @@ function fuelMapApp() {
     trendFuel: 'Tous',
     trendPeriod: '30',
     kpis: [],
+
+    // -------- Préférences / UI --------
+    prefsOpen: false,          // visibilit\u00e9 du panneau \u2699\ufe0f
+    autocompleteEnabled: true, // copie r\u00e9active de la pr\u00e9f\u00e9rence
+    persistPrefs: false,       // copie r\u00e9active du flag de persistance
+    geoError: null,            // null | 'denied' | 'unavailable' | 'timeout'
+
+    // -------- Autocomplete --------
+    suggestions: [],           // tableau renvoy\u00e9 par FMP.Geocoding.suggestCities
+    showSuggestions: false,
+    _autocompleteTimer: null,
+    _lastQuery: '',            // \u00e9vite les requ\u00eates redondantes
 
     // -------- Computed --------
     get filteredStations() {
@@ -40,6 +52,11 @@ function fuelMapApp() {
 
     // -------- Lifecycle --------
     async init() {
+      // Préférences : chargement depuis localStorage si l'utilisateur l'a accepté
+      FMP.Prefs.init();
+      this.autocompleteEnabled = FMP.Prefs.get('autocomplete');
+      this.persistPrefs        = FMP.Prefs.isPersisted();
+
       // Carte init immédiat pour que le viewport soit prêt
       FMP.Map.init('map');
 
@@ -159,9 +176,11 @@ function fuelMapApp() {
 
     useGeolocation() {
       if (!navigator.geolocation) {
+        this.geoError = 'unavailable';
         this.statusMessage = 'La g\u00e9olocalisation n\'est pas support\u00e9e par ce navigateur.';
         return;
       }
+      this.geoError = null;
       this.statusMessage = 'Localisation en cours\u2026';
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -173,12 +192,18 @@ function fuelMapApp() {
           } catch {}
           this.refPoint = { lat, lon, label, scope: 'city' };
           FMP.Map.setReference(lat, lon, label, this.radius);
+          this.geoError = null;
           if (this.dataStatus === 'loaded') {
             this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${label}`;
           }
           FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
         },
         (err) => {
+          // code: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+          if (err.code === 1)      this.geoError = 'denied';
+          else if (err.code === 2) this.geoError = 'unavailable';
+          else if (err.code === 3) this.geoError = 'timeout';
+          else                     this.geoError = 'unavailable';
           this.statusMessage = 'G\u00e9olocalisation refus\u00e9e ou indisponible.';
           console.warn(err);
         },
@@ -232,6 +257,120 @@ function fuelMapApp() {
           this.statusMessage = 'Identification de la ville indisponible.';
         }
       }, 600);
+    },
+
+    // =================================================================
+    // Nouvelles m\u00e9thodes v1.3
+    // =================================================================
+
+    /**
+     * Autocomplete : s'ex\u00e9cute \u00e0 chaque frappe dans le champ ville.
+     * Debounce de 350 ms, minimum 3 caract\u00e8res, d\u00e9sactiv\u00e9 si la
+     * pr\u00e9f\u00e9rence utilisateur est off.
+     */
+    onCityInput() {
+      if (!this.autocompleteEnabled) {
+        this.showSuggestions = false;
+        this.suggestions = [];
+        return;
+      }
+      const q = (this.cityInput || '').trim();
+      if (q.length < 3 || q === this._lastQuery) {
+        this.showSuggestions = false;
+        this.suggestions = [];
+        return;
+      }
+      clearTimeout(this._autocompleteTimer);
+      this._autocompleteTimer = setTimeout(async () => {
+        try {
+          this._lastQuery = q;
+          const results = await FMP.Geocoding.suggestCities(q);
+          this.suggestions = results;
+          this.showSuggestions = results.length > 0;
+        } catch (e) {
+          console.warn('suggestCities \u00e9chou\u00e9', e);
+        }
+      }, 350);
+    },
+
+    /**
+     * L'utilisateur clique sur une suggestion : on remplit le champ,
+     * ferme la liste, et utilise directement les coordonn\u00e9es d\u00e9j\u00e0
+     * connues (pas de nouvelle requ\u00eate Nominatim).
+     */
+    selectSuggestion(sugg) {
+      this.cityInput = sugg.raw;
+      this.suggestions = [];
+      this.showSuggestions = false;
+      this._lastQuery = sugg.raw;
+      this._lastSearchedCity = sugg.raw;
+
+      // Ajustement auto du rayon selon le scope
+      const scopeToRadius = { country: 50, region: 50, department: 40, city: this.radius };
+      const autoRadius = scopeToRadius[sugg.scope] ?? this.radius;
+      if (sugg.scope !== 'city' && autoRadius !== this.radius) {
+        this.radius = autoRadius;
+      }
+
+      this.refPoint = { lat: sugg.lat, lon: sugg.lon, label: sugg.raw, scope: sugg.scope };
+      FMP.Map.setReference(sugg.lat, sugg.lon, sugg.raw, this.radius, sugg.bounds);
+
+      if (this.dataStatus === 'loaded') {
+        const scopeLabel = {
+          country:    'France enti\u00e8re',
+          region:     `r\u00e9gion ${sugg.raw}`,
+          department: `d\u00e9partement ${sugg.raw}`,
+          city:       sugg.raw,
+        }[sugg.scope] || sugg.raw;
+        this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${scopeLabel}`;
+      }
+      FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
+    },
+
+    /** Ferme la liste des suggestions (d\u00e9lai pour laisser le click ventrer). */
+    closeSuggestionsSoon() {
+      setTimeout(() => { this.showSuggestions = false; }, 180);
+    },
+
+    /**
+     * Bouton "Recharger la carte" : force Leaflet \u00e0 recalculer ses
+     * dimensions et \u00e0 se recentrer. Filet de s\u00e9curit\u00e9 contre les
+     * bugs d'affichage mobile (Safari iOS notamment).
+     */
+    reloadMap() {
+      this.statusMessage = 'Rechargement de la carte\u2026';
+      FMP.Map.refresh(this.refPoint, this.radius);
+      if (this.refPoint) {
+        FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
+        if (this.dataStatus === 'loaded') {
+          this.statusMessage = `${this.stations.length.toLocaleString('fr-FR')} stations \u00b7 centr\u00e9 sur ${this.refPoint.label}`;
+        }
+      } else {
+        this.cityInput = 'Paris';
+        this.searchCity();
+      }
+    },
+
+    // ---------- Panneau Pr\u00e9f\u00e9rences ----------
+
+    openPrefs()  { this.prefsOpen = true;  },
+    closePrefs() { this.prefsOpen = false; },
+
+    togglePref(key, value) {
+      FMP.Prefs.set(key, value);
+      if (key === 'autocomplete') this.autocompleteEnabled = value;
+    },
+
+    togglePersist(enabled) {
+      FMP.Prefs.setPersist(enabled);
+      this.persistPrefs = enabled;
+    },
+
+    clearPrefs() {
+      FMP.Prefs.clear();
+      this.autocompleteEnabled = FMP.Prefs.DEFAULTS.autocomplete;
+      this.persistPrefs = false;
+      this.statusMessage = 'Pr\u00e9f\u00e9rences r\u00e9initialis\u00e9es.';
     },
 
     // -------- Tendances --------
