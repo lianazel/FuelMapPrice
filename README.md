@@ -16,6 +16,7 @@ jolie à regarder et rafraîchie chaque heure.
 [✨ Fonctionnalités](#-fonctionnalités) ·
 [🏗️ Stack](#️-stack-technique) ·
 [⚙️ Développement local](#️-développement-local) ·
+[📝 Versions](#-historique-des-versions) ·
 [🙌 Contribuer](#-contribuer)
 
 <br/>
@@ -111,6 +112,7 @@ FuelMapPrice/
 │   └── favicon.svg              # Favicon SVG
 ├── .github/workflows/
 │   └── update-data.yml          # ⚙️ Workflow horaire
+├── CHANGELOG.md                 # Historique des versions
 ├── LICENSE                      # MIT
 └── README.md
 ```
@@ -195,6 +197,14 @@ l'ordre d'envie :
 - [ ] **Comparateur de trajets** : coût carburant entre deux villes
 - [ ] **Alertes** : notification web si un prix passe sous un seuil
 - [ ] **i18n** (EN / DE) — même données, plusieurs marchés
+
+---
+
+## 📝 Historique des versions
+
+Les évolutions de l'application sont documentées dans [CHANGELOG.md](CHANGELOG.md),
+qui suit la convention [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et
+le [versionnement sémantique](https://semver.org/lang/fr/).
 
 ---
 
