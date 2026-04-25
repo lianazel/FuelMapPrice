@@ -452,6 +452,36 @@
           </div>
         </div>
 
+        <!-- Section "\u00c0 propos" \u2014 version, date de build, lien changelog -->
+        <div class="fmp-prefs-section">
+          <div class="fmp-prefs-label" style="margin-bottom: 6px;">\u00c0 propos</div>
+          <div class="fmp-prefs-about">
+            <div class="fmp-prefs-about-row">
+              <span class="fmp-prefs-about-key">Version</span>
+              <span class="fmp-prefs-about-val">
+                <span class="font-mono" x-text="'v' + versionNumber"></span>
+                <span x-show="versionIsNew"
+                      class="ml-1 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-flame/15 text-flame">
+                  \u2728 Nouveau
+                </span>
+              </span>
+            </div>
+            <div class="fmp-prefs-about-row">
+              <span class="fmp-prefs-about-key">Date de build</span>
+              <span class="fmp-prefs-about-val font-mono" x-text="versionDate"></span>
+            </div>
+            <div class="fmp-prefs-about-row">
+              <span class="fmp-prefs-about-key">Libell\u00e9</span>
+              <span class="fmp-prefs-about-val" x-text="versionLabel"></span>
+            </div>
+            <div class="fmp-prefs-about-row" style="margin-top: 8px;">
+              <a :href="versionUrl" target="_blank" rel="noopener" class="fmp-prefs-about-link">
+                Voir l'historique complet des versions \u2192
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div class="fmp-prefs-footer">
           <button @click="clearPrefs()" class="fmp-prefs-clear" title="Réinitialiser toutes les préférences">
             Effacer mes préférences
@@ -467,12 +497,23 @@
     <!-- Footer -->
     <footer class="border-t border-line mt-16">
       <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row justify-between gap-4 text-sm text-ink-soft">
-        <div>
-          <span class="font-display font-semibold text-ink">FuelMapPrice</span> ·
-          Données © <a href="https://www.data.gouv.fr" class="underline decoration-line hover:decoration-forest">data.gouv.fr</a> ·
-          Carte © <a href="https://www.openstreetmap.org/copyright" class="underline decoration-line hover:decoration-forest">OpenStreetMap</a>
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span class="font-display font-semibold text-ink">FuelMapPrice</span>
+          <a :href="versionUrl" target="_blank" rel="noopener"
+             class="font-mono text-xs px-2 py-0.5 rounded-full bg-line/60 hover:bg-forest/15 hover:text-forest transition"
+             :title="'Version ' + versionNumber + ' \u2014 ' + versionDate + ' \u00b7 Cliquer pour voir le changelog'">
+            v<span x-text="versionNumber"></span>
+          </a>
+          <span x-show="versionIsNew"
+                class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-flame/15 text-flame">
+            \u2728 Nouveau
+          </span>
+          <span class="text-ink-faint">\u00b7</span>
+          <span>Donn\u00e9es \u00a9 <a href="https://www.data.gouv.fr" class="underline decoration-line hover:decoration-forest">data.gouv.fr</a></span>
+          <span class="text-ink-faint">\u00b7</span>
+          <span>Carte \u00a9 <a href="https://www.openstreetmap.org/copyright" class="underline decoration-line hover:decoration-forest">OpenStreetMap</a></span>
         </div>
-        <div class="text-ink-faint">Fait avec ⛽ en France</div>
+        <div class="text-ink-faint">Fait avec \u26FD en France</div>
       </div>
     </footer>
 
@@ -485,6 +526,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 
   <!-- App logic -->
+  <script src="js/version.js"></script>
   <script src="js/data.js"></script>
   <script src="js/geocoding.js"></script>
   <script src="js/map.js"></script>

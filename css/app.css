@@ -372,6 +372,38 @@ section[x-show] {
 .fmp-switch input:checked + .fmp-switch-slider { background: #1A3C34; }
 .fmp-switch input:checked + .fmp-switch-slider::before { transform: translateX(20px); }
 
+.fmp-prefs-about {
+  font-size: 12px;
+  line-height: 1.5;
+  padding-top: 4px;
+}
+.fmp-prefs-about-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 3px 0;
+}
+.fmp-prefs-about-key {
+  color: #52524E;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.fmp-prefs-about-val {
+  color: #0F0F0E;
+  text-align: right;
+}
+.fmp-prefs-about-link {
+  color: #1A3C34;
+  font-size: 12px;
+  text-decoration: underline;
+  text-decoration-color: rgba(26, 60, 52, 0.3);
+}
+.fmp-prefs-about-link:hover {
+  text-decoration-color: #1A3C34;
+}
+
 .fmp-prefs-footer {
   margin-top: 14px;
   padding-top: 14px;
@@ -441,6 +473,11 @@ section[x-show] {
   .fmp-prefs-clear { background: transparent; border-color: #3A403D; color: #A9A9A1; }
   .fmp-prefs-clear:hover { border-color: #E58873; color: #E58873; }
   .fmp-switch-slider { background: #3A403D; }
+
+  .fmp-prefs-about-key { color: #A9A9A1; }
+  .fmp-prefs-about-val { color: #ECE9E0; }
+  .fmp-prefs-about-link { color: #5BB89E; text-decoration-color: rgba(91, 184, 158, 0.35); }
+  .fmp-prefs-about-link:hover { text-decoration-color: #5BB89E; }
 
   .fmp-geo-help {
     background: rgba(241, 219, 158, 0.08);

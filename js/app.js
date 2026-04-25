@@ -32,6 +32,13 @@ function fuelMapApp() {
     persistPrefs: false,       // copie r\u00e9active du flag de persistance
     geoError: null,            // null | 'denied' | 'unavailable' | 'timeout'
 
+    // -------- Version (expos\u00e9e pour le template) --------
+    get versionNumber() { return FMP.Version?.number || '?'; },
+    get versionDate()   { return FMP.Version?.formattedDate() || ''; },
+    get versionLabel()  { return FMP.Version?.label || ''; },
+    get versionUrl()    { return FMP.Version?.changelogUrl || '#'; },
+    get versionIsNew()  { return FMP.Version?.isNew(3) || false; },
+
     // -------- Autocomplete --------
     suggestions: [],           // tableau renvoy\u00e9 par FMP.Geocoding.suggestCities
     showSuggestions: false,
