@@ -69,6 +69,14 @@ function fuelMapApp() {
       this.autocompleteEnabled = FMP.Prefs.get('autocomplete');
       this.persistPrefs        = FMP.Prefs.isPersisted();
 
+      // Restaurer la dernière ville, carburant et rayon mémorisés
+      const savedCity   = FMP.Prefs.get('city');
+      const savedFuel   = FMP.Prefs.get('fuel');
+      const savedRadius = FMP.Prefs.get('radius');
+      if (savedCity)   this.cityInput    = savedCity;
+      if (savedFuel)   this.selectedFuel = savedFuel;
+      if (savedRadius) this.radius       = savedRadius;
+
       // Détection mobile et écoute du redimensionnement
       this._detectMobile();
       window.addEventListener('resize', () => this._detectMobile());
@@ -96,6 +104,10 @@ function fuelMapApp() {
           FMP.Map.setReference(this.refPoint.lat, this.refPoint.lon, this.refPoint.label, this.radius);
         }
       });
+      // Sauvegarde automatique des choix utilisateur dans les préférences
+      this.$watch('selectedFuel', (v) => FMP.Prefs.set('fuel', v));
+      this.$watch('radius',       (v) => FMP.Prefs.set('radius', v));
+
       this.$watch('trendFuel',   () => this.updateChart());
       this.$watch('trendPeriod', () => this.updateChart());
       this.$watch('activeTab', (tab) => {
@@ -165,6 +177,7 @@ function fuelMapApp() {
           return;
         }
         this._lastSearchedCity = q;
+        FMP.Prefs.set('city', q);
 
         // Selon la nature du lieu, on adapte le rayon de recherche pour que
         // l'utilisateur voie tout de suite un ensemble pertinent de stations.
@@ -217,7 +230,7 @@ function fuelMapApp() {
           let label = 'Ma position';
           try {
             const city = await FMP.Geocoding.reverseGeocode(lat, lon);
-            if (city) { label = city; this.cityInput = city; this._lastSearchedCity = city; }
+            if (city) { label = city; this.cityInput = city; this._lastSearchedCity = city; FMP.Prefs.set('city', city); }
           } catch {}
           this.refPoint = { lat, lon, label, scope: 'city' };
           FMP.Map.setReference(lat, lon, label, this.radius);
@@ -274,6 +287,7 @@ function fuelMapApp() {
           // Mise \u00e0 jour du champ visible + du point de r\u00e9f\u00e9rence
           this.cityInput = city;
           this._lastSearchedCity = city; // \u00e9vite que le blur ult\u00e9rieur re-cherche inutilement
+          FMP.Prefs.set('city', city);
           this.refPoint  = { lat, lon, label: city, scope: 'city' };
           FMP.Map.setReference(lat, lon, city, this.radius);
 
@@ -333,6 +347,7 @@ function fuelMapApp() {
       this.showSuggestions = false;
       this._lastQuery = sugg.raw;
       this._lastSearchedCity = sugg.raw;
+      FMP.Prefs.set('city', sugg.raw);
 
       // Ajustement auto du rayon selon le scope
       const scopeToRadius = { country: 50, region: 50, department: 40, city: this.radius };
@@ -399,6 +414,10 @@ function fuelMapApp() {
       FMP.Prefs.clear();
       this.autocompleteEnabled = FMP.Prefs.DEFAULTS.autocomplete;
       this.persistPrefs = false;
+      // R\u00e9initialiser ville/carburant/rayon aux valeurs par d\u00e9faut
+      this.cityInput    = 'Paris';
+      this.selectedFuel = 'SP95';
+      this.radius       = 10;
       this.statusMessage = 'Pr\u00e9f\u00e9rences r\u00e9initialis\u00e9es.';
     },
 

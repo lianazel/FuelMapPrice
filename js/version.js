@@ -10,9 +10,9 @@
 window.FMP = window.FMP || {};
 
 FMP.Version = {
-  number: '1.4.0',
+  number: '1.4.1',
   date:   '2026-05-09',              // YYYY-MM-DD : date du build
-  label:  'Navigation mobile par pages',
+  label:  'Mémorisation des préférences',
 
   // URL du changelog sur GitHub — ouverte au clic sur le numéro de version
   changelogUrl: 'https://github.com/lianazel/FuelMapPrice/blob/main/CHANGELOG.md',

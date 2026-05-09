@@ -25,10 +25,9 @@ FMP.Prefs = (function () {
   // Toute nouvelle préférence doit être déclarée ici pour être gérée.
   const DEFAULTS = Object.freeze({
     autocomplete: true,   // suggestions intelligentes de villes (Nominatim)
-    // Réservé pour la suite :
-    // favoriteFuel: 'SP95',
-    // defaultRadius: 10,
-    // lastCity: 'Paris',
+    city:         '',     // dernière ville recherchée (vide = Paris par défaut dans app.js)
+    fuel:         '',     // dernier carburant sélectionné (vide = SP95 par défaut)
+    radius:       0,      // dernier rayon choisi (0 = valeur par défaut 10 dans app.js)
   });
 
   // État en mémoire (toujours la source de vérité pour la session en cours)

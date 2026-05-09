@@ -8,6 +8,17 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.4.1] — 2026-05-09
+
+### Ajouté
+- **Mémorisation des choix utilisateur** : la ville de référence, le type de carburant
+  et le rayon de recherche sont automatiquement sauvegardés dans les préférences
+- Au prochain lancement, l'application restaure les derniers choix (si la persistance
+  localStorage est activée dans ⚙️ Préférences)
+- La réinitialisation des préférences remet les valeurs par défaut (Paris / SP95 / 10 km)
+
+---
+
 ## [1.4.0] — 2026-05-09
 
 ### Ajouté

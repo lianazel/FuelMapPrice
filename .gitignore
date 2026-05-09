@@ -1,19 +1,141 @@
-# OS
-.DS_Store
-Thumbs.db
+# ============================================================================
+# FuelMapPrice — .gitignore
+# ============================================================================
+# Projet web statique (HTML/JS/CSS) + script Python pour la récupération
+# des données. Pas de build front, pas de bundler.
+# ============================================================================
 
-# Editors
+
+# ----------------------------------------------------------------------------
+# Système d'exploitation
+# ----------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+.Trash-*
+
+
+# ----------------------------------------------------------------------------
+# Éditeurs / IDE
+# ----------------------------------------------------------------------------
+# VS Code
 .vscode/
+*.code-workspace
+
+# JetBrains (WebStorm, PyCharm, IntelliJ, etc.)
 .idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim / Neovim
 *.swp
 *.swo
+*.swn
+.netrwhist
 
-# Python
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Notepad++ backups
+*.bak
+
+
+# ----------------------------------------------------------------------------
+# Documents bureautiques (gérés ailleurs)
+# ----------------------------------------------------------------------------
+# Documents d'étude / spec / brouillons : pas leur place dans le repo code
+*.docx
+*.xlsx
+*.pptx
+*.odt
+*.ods
+*.odp
+*.pdf
+TEC_IA_CLAUDE_PROJET_*
+
+
+# ----------------------------------------------------------------------------
+# Python (script fetch-data.py)
+# ----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.Python
+.pytest_cache/
 .venv/
 venv/
+env/
+ENV/
 
-# Logs
+
+# ----------------------------------------------------------------------------
+# Node.js (au cas où on utilise `npx serve` ou un futur outil de dev)
+# ----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+package-lock.json
+yarn.lock
+
+
+# ----------------------------------------------------------------------------
+# Logs & fichiers temporaires
+# ----------------------------------------------------------------------------
 *.log
+*.tmp
+*.temp
+*.cache
+
+
+# ----------------------------------------------------------------------------
+# Variables d'environnement & secrets
+# ----------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets.json
+
+
+# ----------------------------------------------------------------------------
+# Données locales générées (optionnel — décommenter si tu ne veux PAS versionner les JSON)
+# ----------------------------------------------------------------------------
+# Note : actuellement, data/stations.json et data/history.json sont versionnés
+#        car la GitHub Action les commit elle-même. Si tu changes de stratégie
+#        (ex : héberger les JSON ailleurs), décommente les lignes ci-dessous.
+# data/stations.json
+# data/history.json
+
+
+# ----------------------------------------------------------------------------
+# Fichiers spécifiques au projet (à compléter au fil de l'eau)
+# ----------------------------------------------------------------------------
+# Brouillons, exports manuels, captures d'écran de dev
+/IMAGES_DEV_A_SUPPRIMER/
+/brouillons/
+/_local/
