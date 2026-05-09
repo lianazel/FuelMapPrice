@@ -748,3 +748,31 @@ section[x-show] {
   }
 }
 
+
+/* ===================================================================
+ * Popup : double bouton itinéraire (Google Maps + Apple Plans)
+ * =================================================================== */
+.fmp-pop-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.fmp-pop-route-alt {
+  background: #52524E !important;
+}
+.fmp-pop-route-alt:hover {
+  background: #3A3A36 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .fmp-pop-route-alt {
+    background: #3A403D !important;
+    color: #ECE9E0 !important;
+  }
+  .fmp-pop-route-alt:hover {
+    background: #4A504D !important;
+  }
+}
+
