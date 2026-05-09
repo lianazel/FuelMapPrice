@@ -578,7 +578,25 @@
           </div>
         </div>
 
-        <!-- Section 2 : Persistance -->
+        <!-- Section 2 : Fil d'actualités -->
+        <div class="fmp-prefs-section">
+          <div class="fmp-prefs-row">
+            <div class="fmp-prefs-row-text">
+              <div class="fmp-prefs-label">Actualités internationales</div>
+              <div class="fmp-prefs-hint">
+                Si activé, le fil d'actualités énergie affiche des sources du monde entier (toutes langues). Sinon, uniquement le français et l'anglais.
+              </div>
+            </div>
+            <label class="fmp-switch">
+              <input type="checkbox"
+                     :checked="newsIntlEnabled"
+                     @change="togglePref('newsIntl', $event.target.checked)" />
+              <span class="fmp-switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 3 : Persistance -->
         <div class="fmp-prefs-section">
           <div class="fmp-prefs-row">
             <div class="fmp-prefs-row-text">
@@ -660,6 +678,24 @@
         <div class="text-ink-faint">Fait avec ⛽ en France</div>
       </div>
     </footer>
+
+    <!-- Toast « Personnalisez votre app » — affiché une seule fois -->
+    <div x-show="prefsTip"
+         x-transition:enter="transition ease-out duration-500"
+         x-transition:enter-start="translate-y-full opacity-0"
+         x-transition:enter-end="translate-y-0 opacity-100"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="translate-y-0 opacity-100"
+         x-transition:leave-end="translate-y-full opacity-0"
+         class="fmp-prefs-toast" x-cloak>
+      <div class="fmp-prefs-toast-icon">⚙️</div>
+      <div class="fmp-prefs-toast-body">
+        <div class="fmp-prefs-toast-title">Personnalisez votre expérience</div>
+        <div class="fmp-prefs-toast-text">Actus internationales, mémorisation de vos choix, suggestions de villes…</div>
+      </div>
+      <button class="fmp-prefs-toast-btn" @click="prefsTip = false; openPrefs()">Ouvrir</button>
+      <button class="fmp-prefs-toast-close" @click="prefsTip = false" aria-label="Fermer">✕</button>
+    </div>
 
   </div>
 

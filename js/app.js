@@ -40,7 +40,9 @@ function fuelMapApp() {
 
     // -------- Préférences / UI --------
     prefsOpen: false,          // visibilit\u00e9 du panneau \u2699\ufe0f
+    prefsTip: false,           // toast \u00ab Personnalisez votre app \u00bb
     autocompleteEnabled: true, // copie r\u00e9active de la pr\u00e9f\u00e9rence
+    newsIntlEnabled: false,    // actus internationales (toutes langues) ou FR/EN uniquement
     persistPrefs: false,       // copie r\u00e9active du flag de persistance
     geoError: null,            // null | 'denied' | 'unavailable' | 'timeout'
 
@@ -74,6 +76,7 @@ function fuelMapApp() {
       // Préférences : chargement depuis localStorage si l'utilisateur l'a accepté
       FMP.Prefs.init();
       this.autocompleteEnabled = FMP.Prefs.get('autocomplete');
+      this.newsIntlEnabled     = FMP.Prefs.get('newsIntl');
       this.persistPrefs        = FMP.Prefs.isPersisted();
 
       // Restaurer la dernière ville, carburant et rayon mémorisés
@@ -136,6 +139,30 @@ function fuelMapApp() {
 
       // Position initiale : Paris par défaut
       await this.searchCity();
+
+      // Toast « Personnalisez votre app » — affiché une fois par version
+      this._showPrefsTipIfNeeded();
+    },
+
+    /**
+     * Affiche un toast discret au premier lancement (ou lors d'une mise à jour)
+     * pour informer l'utilisateur qu'il peut personnaliser son expérience.
+     * Ne s'affiche qu'une seule fois par version.
+     */
+    _showPrefsTipIfNeeded() {
+      const TIP_KEY = 'fmp.prefsTipSeen';
+      const currentVersion = FMP.Version?.number || '1';
+      try {
+        const seen = localStorage.getItem(TIP_KEY);
+        if (seen === currentVersion) return; // déjà vu pour cette version
+      } catch {}
+      // Afficher après un court délai pour ne pas gêner le chargement
+      setTimeout(() => {
+        this.prefsTip = true;
+        try { localStorage.setItem(TIP_KEY, currentVersion); } catch {}
+        // Auto-dismiss après 8 secondes
+        setTimeout(() => { this.prefsTip = false; }, 8000);
+      }, 2500);
     },
 
     // -------- Data loading --------
@@ -412,6 +439,18 @@ function fuelMapApp() {
     togglePref(key, value) {
       FMP.Prefs.set(key, value);
       if (key === 'autocomplete') this.autocompleteEnabled = value;
+      if (key === 'newsIntl') {
+        this.newsIntlEnabled = value;
+        // Recharger les actus avec le nouveau filtre
+        this.geoNews = [];
+        if (this.activeTab === 'geo') {
+          this.geoNewsLoading = true;
+          FMP.Geo.loadNews(15, value).then(news => {
+            this.geoNews = news;
+            this.geoNewsLoading = false;
+          });
+        }
+      }
     },
 
     togglePersist(enabled) {
@@ -422,6 +461,7 @@ function fuelMapApp() {
     clearPrefs() {
       FMP.Prefs.clear();
       this.autocompleteEnabled = FMP.Prefs.DEFAULTS.autocomplete;
+      this.newsIntlEnabled     = FMP.Prefs.DEFAULTS.newsIntl;
       this.persistPrefs = false;
       // R\u00e9initialiser ville/carburant/rayon aux valeurs par d\u00e9faut
       this.cityInput    = 'Paris';
@@ -507,7 +547,7 @@ function fuelMapApp() {
       // Charger les actus (une seule fois)
       if (this.geoNews.length === 0) {
         this.geoNewsLoading = true;
-        this.geoNews = await FMP.Geo.loadNews(15);
+        this.geoNews = await FMP.Geo.loadNews(15, this.newsIntlEnabled);
         this.geoNewsLoading = false;
       }
     },

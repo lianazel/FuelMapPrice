@@ -169,8 +169,31 @@ FMP.Geo = (function () {
   // Actualités via GDELT
   // ------------------------------------------------------------------
 
-  async function loadNews(maxArticles = 15) {
-    // Stratégie : FR d'abord, puis compléter avec EN si < 5 résultats
+  /**
+   * Charge les actualités énergie.
+   * @param {number} maxArticles  — nombre max d'articles
+   * @param {boolean} intl        — true = toutes langues, false = FR + EN uniquement
+   */
+  async function loadNews(maxArticles = 15, intl = false) {
+
+    // Mode international : une seule requête, toutes langues
+    if (intl) {
+      try {
+        const url = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const text = await res.text();
+          if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+            return formatArticles(JSON.parse(text));
+          }
+        }
+      } catch (e) {
+        console.warn('FMP.Geo: GDELT intl échoué.', e);
+      }
+      return [];
+    }
+
+    // Mode FR/EN : français d'abord, compléter avec anglais si < 5
     const articles = [];
     const urls = new Set();
 
@@ -180,7 +203,6 @@ FMP.Geo = (function () {
       const resFr = await fetch(urlFr);
       if (resFr.ok) {
         const text = await resFr.text();
-        // GDELT renvoie parfois du HTML au lieu de JSON en cas d'erreur
         if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
           const dataFr = JSON.parse(text);
           for (const a of formatArticles(dataFr)) {
@@ -192,16 +214,16 @@ FMP.Geo = (function () {
       console.warn('FMP.Geo: GDELT FR échoué.', e);
     }
 
-    // Étape 2 : compléter avec articles internationaux si besoin
+    // Étape 2 : compléter avec articles EN si besoin
     if (articles.length < 5) {
       try {
-        const urlAll = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
-        const resAll = await fetch(urlAll);
-        if (resAll.ok) {
-          const text = await resAll.text();
+        const urlEn = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc&sourcelang=english`;
+        const resEn = await fetch(urlEn);
+        if (resEn.ok) {
+          const text = await resEn.text();
           if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
-            const dataAll = JSON.parse(text);
-            for (const a of formatArticles(dataAll)) {
+            const dataEn = JSON.parse(text);
+            for (const a of formatArticles(dataEn)) {
               if (!urls.has(a.url) && articles.length < maxArticles) {
                 articles.push(a); urls.add(a.url);
               }
@@ -209,7 +231,7 @@ FMP.Geo = (function () {
           }
         }
       } catch (e) {
-        console.warn('FMP.Geo: GDELT ALL échoué.', e);
+        console.warn('FMP.Geo: GDELT EN échoué.', e);
       }
     }
 

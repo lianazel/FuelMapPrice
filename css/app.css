@@ -971,3 +971,108 @@ section[x-show] {
   }
 }
 
+
+/* ===================================================================
+ * Toast « Personnalisez votre expérience »
+ * =================================================================== */
+.fmp-prefs-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 480px;
+  width: calc(100% - 32px);
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #1A3C34;
+  color: #ECE9E0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  font-family: "Instrument Sans", system-ui, sans-serif;
+}
+
+.fmp-prefs-toast-icon {
+  font-size: 24px;
+  flex: none;
+  line-height: 1;
+}
+
+.fmp-prefs-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fmp-prefs-toast-title {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.fmp-prefs-toast-text {
+  font-size: 12px;
+  color: rgba(236, 233, 224, 0.65);
+  line-height: 1.4;
+}
+
+.fmp-prefs-toast-btn {
+  flex: none;
+  padding: 7px 16px;
+  border-radius: 10px;
+  background: #E85D04;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.fmp-prefs-toast-btn:hover {
+  background: #D4520A;
+}
+
+.fmp-prefs-toast-close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: rgba(236, 233, 224, 0.6);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.fmp-prefs-toast-close:hover {
+  background: rgba(255,255,255,0.18);
+  color: #ECE9E0;
+}
+
+/* Mobile : toast plus compact */
+@media (max-width: 480px) {
+  .fmp-prefs-toast {
+    bottom: 16px;
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+  .fmp-prefs-toast-icon { font-size: 20px; }
+  .fmp-prefs-toast-title { font-size: 13px; }
+  .fmp-prefs-toast-text { font-size: 11px; }
+  .fmp-prefs-toast-btn { padding: 6px 12px; font-size: 12px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .fmp-prefs-toast {
+    background: #0F1F1A;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(91, 184, 158, 0.12) inset;
+  }
+}
+
