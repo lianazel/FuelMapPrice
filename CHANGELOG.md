@@ -8,6 +8,33 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.4.0] — 2026-05-09
+
+### Ajouté
+- **Navigation mobile par pages** : sur smartphone (< 1024 px), l'onglet Carte est découpé
+  en 3 pages distinctes (Recherche / Stations / Carte) au lieu d'empiler tous les blocs
+- **Barre de navigation mobile** avec boutons « ← Retour » et « 🏠 Accueil » en haut des sous-pages
+- **Boutons d'action** sur la page de recherche mobile : « Voir les stations » (avec compteur)
+  et « Voir la carte » — navigation claire et intuitive
+- Clic sur une station dans la liste → navigation automatique vers la carte sur mobile
+- Support du **bouton retour navigateur** via l'History API
+- Détection automatique du device (mobile / desktop) avec écoute du redimensionnement
+- Carte et liste en **pleine hauteur** sur mobile pour un confort de lecture optimal
+
+### Amélioré
+- **Indicateur de tendance** plus lisible : « ▲ Légère hausse » / « ▼ Baisse » / « → Stable »
+  avec couleurs (rouge hausse, vert baisse, gris stable)
+- Prix minimum coloré en **vert**, prix maximum en **rouge** dans les KPIs
+- Sous-titre de la page d'accueil élargi pour tenir sur une seule ligne sur desktop
+
+### Corrigé
+- Caractères Unicode échappés dans le footer (`\u00b7`, `\u00a9`, `\u26FD`) remplacés
+  par les vrais caractères (·, ©, ⛽, ✨, →)
+- `invalidateSize()` automatique de Leaflet lors de la navigation vers la page carte
+- Réinitialisation de la page mobile lors du changement d'onglet (Carte / Tendances / À propos)
+
+---
+
 ## [1.3.1] — 2026-04-24
 
 ### Ajouté

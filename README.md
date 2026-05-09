@@ -32,26 +32,45 @@ jolie à regarder et rafraîchie chaque heure.
 ### 🗺️ Onglet Carte — recherche géolocalisée
 
 - Saisie d'une **ville de référence** avec géocodage automatique (Nominatim / OpenStreetMap)
+- Autocomplétion intelligente : villes, départements, régions (désactivable dans les préférences)
 - Bouton « **📍 Ma position** » pour utiliser la géolocalisation du navigateur
 - Filtres en temps réel :
   - **Type de carburant** : SP95, SP98, Gazole, E10, E85, GPLc
   - **Prix maximum** au litre
-  - **Rayon de recherche** de 5 à 50 km
+  - **Rayon de recherche** de 5 à 50 km (ajusté automatiquement selon la zone)
 - **Marqueurs colorés** selon le prix (vert = bon marché, ambre = médian, rouge = cher)
 - **Liste latérale** des stations triées par prix croissant, cliquables pour zoomer sur la carte
-- **Pop-up détaillé** : nom, adresse, prix, date de mise à jour
+- **Pop-up détaillé** : nom, adresse, prix, date de mise à jour, lien itinéraire (Google Maps / Apple Plans)
+- **Clic sur la carte** : recentre automatiquement la recherche sur la ville cliquée
 
 ### 📈 Onglet Tendances — historique national
 
 - Courbes de l'évolution des prix moyens, reconstituées **jour après jour**
 - Sélection d'**un carburant** ou affichage **multi-courbes** (« Tous »)
 - Périodes glissantes : **7 jours · 1 mois · 3 mois · 6 mois**
-- Indicateurs : prix **moyen**, **min**, **max** et **tendance** (↗ / → / ↘)
+- Indicateurs colorés : prix **moyen**, **min** (vert), **max** (rouge) et **tendance** (▲ Hausse / ▼ Baisse / → Stable)
 
-### 📱 Responsive
+### 📱 Mobile — navigation par pages
 
-Dessiné pour fonctionner aussi bien sur un grand écran que sur un smartphone :
-la liste et la carte se réorganisent verticalement en dessous de 1024 px.
+Sur smartphone (< 1024 px), l'interface adopte une **navigation par pages** plutôt qu'un empilement vertical :
+
+- **Page Recherche** : filtres + deux boutons d'action (Voir les stations / Voir la carte)
+- **Page Stations** : liste plein écran des résultats
+- **Page Carte** : carte Leaflet en pleine hauteur
+
+Chaque sous-page dispose de boutons **← Retour** et **🏠 Accueil** en haut de l'écran. Le bouton retour du navigateur est aussi supporté via l'History API.
+
+Sur desktop, tout reste affiché simultanément (carte + liste côte à côte).
+
+### ⚙️ Préférences
+
+- Suggestions de villes activables / désactivables
+- Mémorisation locale (localStorage) optionnelle — aucune donnée ne quitte l'appareil
+- Panneau « À propos » avec numéro de version et lien vers le changelog
+
+### 🌙 Mode sombre
+
+Activé automatiquement selon la préférence système (`prefers-color-scheme: dark`). Tous les éléments sont adaptés : carte, popups, graphiques, navigation mobile.
 
 ---
 
@@ -96,20 +115,23 @@ entièrement compatible avec un hébergement statique gratuit.
 FuelMapPrice/
 ├── index.html                   # Point d'entrée — UI complète
 ├── css/
-│   └── app.css                  # Styles custom (Leaflet, scrollbar, animations)
+│   └── app.css                  # Styles custom (Leaflet, scrollbar, mobile nav, animations)
 ├── js/
-│   ├── app.js                   # Composant Alpine principal
+│   ├── app.js                   # Composant Alpine principal + navigation mobile
 │   ├── data.js                  # Chargement JSON + filtrage + Haversine
-│   ├── geocoding.js             # Nominatim (ville → lat/lon)
+│   ├── geocoding.js             # Nominatim (ville → lat/lon) + autocomplétion
 │   ├── map.js                   # Leaflet : marqueurs, cercle de rayon, popups
-│   └── trends.js                # Chart.js : courbes + KPIs
+│   ├── preferences.js           # Gestion des préférences utilisateur
+│   ├── trends.js                # Chart.js : courbes + KPIs + tendance
+│   └── version.js               # Numéro de version et date de build
 ├── data/
 │   ├── stations.json            # ⚙️ Généré par la GitHub Action
 │   └── history.json             # ⚙️ Généré par la GitHub Action
 ├── scripts/
 │   └── fetch-data.py            # Script Python : download + parse + agrégation
 ├── assets/
-│   └── favicon.svg              # Favicon SVG
+│   ├── favicon.svg              # Favicon SVG
+│   └── preview.svg              # Aperçu pour le README
 ├── .github/workflows/
 │   └── update-data.yml          # ⚙️ Workflow horaire
 ├── CHANGELOG.md                 # Historique des versions
@@ -124,7 +146,7 @@ FuelMapPrice/
 Aucun outillage requis — un simple serveur HTTP statique suffit.
 
 ```bash
-git clone https://github.com/<ton-pseudo>/FuelMapPrice.git
+git clone https://github.com/lianazel/FuelMapPrice.git
 cd FuelMapPrice
 
 # Avec Python (déjà installé partout)
@@ -159,7 +181,7 @@ git init
 git add .
 git commit -m "feat: initial release"
 git branch -M main
-git remote add origin https://github.com/<ton-pseudo>/FuelMapPrice.git
+git remote add origin https://github.com/lianazel/FuelMapPrice.git
 git push -u origin main
 ```
 
@@ -172,7 +194,7 @@ Dans les **Settings** du repo → **Pages** :
 - Sauvegarder
 
 Le site est accessible quelques minutes plus tard à l'adresse
-`https://<ton-pseudo>.github.io/FuelMapPrice/`.
+`https://lianazel.github.io/FuelMapPrice/`.
 
 ### 3. Activer la GitHub Action
 
@@ -188,11 +210,9 @@ Tu peux aussi la lancer manuellement depuis l'onglet **Actions** → **Update fu
 
 ## 🙌 Contribuer
 
-Les idées et les PR sont bienvenues. Quelques pistes d'évolution dans
-l'ordre d'envie :
+Les idées et les PR sont bienvenues. Quelques pistes d'évolution :
 
 - [ ] **Favoris** (localStorage) : épingler ses stations habituelles
-- [ ] **Mode sombre** déclenché par `prefers-color-scheme`
 - [ ] **Export CSV** de la liste filtrée
 - [ ] **Comparateur de trajets** : coût carburant entre deux villes
 - [ ] **Alertes** : notification web si un prix passe sous un seuil

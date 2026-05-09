@@ -177,20 +177,34 @@ FMP.Trends = (function () {
     const prev7 = filtered.slice(-14, -7).flatMap(d => fuels.map(f => d.avg?.[f]).filter(v => v != null));
     let trendHint = '—';
     let trendArrow = '→';
+    let trendColor = null;
     if (last7.length && prev7.length) {
       const a = last7.reduce((x, y) => x + y, 0) / last7.length;
       const b = prev7.reduce((x, y) => x + y, 0) / prev7.length;
       const delta = a - b;
       const pct = (delta / b) * 100;
-      trendArrow = delta > 0.005 ? '↗' : delta < -0.005 ? '↘' : '→';
-      trendHint = `${delta >= 0 ? '+' : ''}${pct.toFixed(2)} % vs sem. précédente`;
+      const absPct = Math.abs(pct);
+
+      if (delta > 0.005) {
+        trendArrow = absPct > 1 ? '▲ Hausse' : '▲ Légère hausse';
+        trendColor = '#CF222E';
+        trendHint = `+${pct.toFixed(2)} % vs semaine précédente`;
+      } else if (delta < -0.005) {
+        trendArrow = absPct > 1 ? '▼ Baisse' : '▼ Légère baisse';
+        trendColor = '#1A7F37';
+        trendHint = `${pct.toFixed(2)} % vs semaine précédente`;
+      } else {
+        trendArrow = '→ Stable';
+        trendColor = '#52524E';
+        trendHint = `${delta >= 0 ? '+' : ''}${pct.toFixed(2)} % vs semaine précédente`;
+      }
     }
 
     return [
       { label: 'Prix moyen', value: avg.toFixed(3) + ' €', hint: `sur ${periodDays} jours` },
-      { label: 'Prix minimum', value: min.toFixed(3) + ' €', hint: 'meilleur relevé' },
-      { label: 'Prix maximum', value: max.toFixed(3) + ' €', hint: 'relevé le plus cher' },
-      { label: 'Tendance', value: trendArrow, hint: trendHint },
+      { label: 'Prix minimum', value: min.toFixed(3) + ' €', hint: 'meilleur relevé', color: '#1A7F37' },
+      { label: 'Prix maximum', value: max.toFixed(3) + ' €', hint: 'relevé le plus cher', color: '#CF222E' },
+      { label: 'Tendance', value: trendArrow, hint: trendHint, color: trendColor },
     ];
   }
 
