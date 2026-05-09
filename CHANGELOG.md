@@ -22,6 +22,13 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 - Le script Python génère désormais `data/oil-prices.json` (cours Brent/WTI quotidiens, source EIA)
 - La GitHub Action committe aussi `data/oil-prices.json`
 
+### Corrigé
+- **Double bouton itinéraire** : la popup affiche désormais Google Maps (toujours)
+  + Apple Plans (sur iOS uniquement) au lieu d'un seul bouton conditionnel
+- **Requête GDELT robustifiée** : suppression des accents dans la query, filtre langue
+  corrigé (`french` au lieu de `fre`), vérification que la réponse est bien du JSON
+- Message d'aide affiché si `oil-prices.json` n'est pas encore généré
+
 ---
 
 ## [1.4.1] — 2026-05-09

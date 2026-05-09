@@ -109,17 +109,16 @@ FMP.Map = (function () {
       const updated = s.updated ? new Date(s.updated) : null;
       const updatedStr = updated ? updated.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }) + ' ' + updated.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '\u2014';
 
-      // URL d'itin\u00e9raire : Apple Plans sur iOS, Google Maps partout ailleurs.
-      // Le navigateur iOS reconna\u00eet maps:// et ouvre nativement l'app ;
-      // sinon on utilise l'URL universelle Google Maps (qui fonctionne aussi dans les autres syst\u00e8mes).
+      // URLs d'itin\u00e9raire : Google Maps (toujours) + Apple Plans (iOS uniquement)
+      const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}&travelmode=driving`;
+      const appleUrl  = `https://maps.apple.com/?daddr=${s.lat},${s.lon}&dirflg=d`;
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const routeUrl = isIOS
-        ? `https://maps.apple.com/?daddr=${s.lat},${s.lon}&dirflg=d`
-        : `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}&travelmode=driving`;
 
       const ruptureTag = s.rupture
         ? `<span class="fmp-pop-rupture">En rupture</span>`
         : '';
+
+      const routeNav = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>`;
 
       const popupHtml = `
         <div class="fmp-pop-name">${escapeHtml(s.name || ('Station ' + s.id))}${ruptureTag}</div>
@@ -127,10 +126,14 @@ FMP.Map = (function () {
         <div class="fmp-pop-price" style="color:${color}">${s.price.toFixed(3)} \u20ac</div>
         <div class="fmp-pop-fuel">${escapeHtml(fuelLabel)} \u00b7 ${s.distance.toFixed(1)} km</div>
         <div class="fmp-pop-time">maj ${updatedStr}</div>
-        <a class="fmp-pop-route" href="${routeUrl}" target="_blank" rel="noopener">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-          <span>Itin\u00e9raire</span>
-        </a>
+        <div class="fmp-pop-routes">
+          <a class="fmp-pop-route fmp-pop-route-google" href="${googleUrl}" target="_blank" rel="noopener">
+            ${routeNav}<span>Google Maps</span>
+          </a>
+          ${isIOS ? `<a class="fmp-pop-route fmp-pop-route-apple" href="${appleUrl}" target="_blank" rel="noopener">
+            ${routeNav}<span>Apple Plans</span>
+          </a>` : ''}
+        </div>
       `;
 
       const m = L.marker([s.lat, s.lon], { icon })

@@ -13,8 +13,10 @@ FMP.Geo = (function () {
   const OIL_PRICES_URL = 'data/oil-prices.json';
   const GDELT_BASE     = 'https://api.gdeltproject.org/api/v2/doc/doc';
 
-  // Mots-clés pour filtrer les actus énergie/pétrole (GDELT comprend le français)
-  const NEWS_QUERY = '(petrole OR pétrole OR "crude oil" OR "prix carburant" OR OPEP OR OPEC OR Brent OR "gas prices" OR énergie OR "oil prices")';
+  // Mots-clés pour filtrer les actus énergie/pétrole
+  // Note : on évite les accents dans la query GDELT (encodage instable selon navigateur)
+  const NEWS_QUERY_FR  = '(petrole OR "prix carburant" OR OPEP OR Brent OR "cours petrole" OR "prix essence" OR OPEC OR carburant)';
+  const NEWS_QUERY_ALL = '("crude oil" OR OPEC OR Brent OR "oil prices" OR "gas prices" OR "oil market" OR petroleum OR "energy crisis")';
 
   let _oilChart = null;  // instance Chart.js
 
@@ -25,8 +27,16 @@ FMP.Geo = (function () {
   async function loadOilPrices() {
     try {
       const res = await fetch(OIL_PRICES_URL, { cache: 'no-cache' });
-      if (!res.ok) return null;
-      return await res.json();
+      if (!res.ok) {
+        console.warn(`FMP.Geo: oil-prices.json HTTP ${res.status} — le fichier n'a peut-être pas encore été généré par l'Action GitHub.`);
+        return null;
+      }
+      const data = await res.json();
+      if (!data || !data.days || data.days.length === 0) {
+        console.warn('FMP.Geo: oil-prices.json vide ou sans données.');
+        return null;
+      }
+      return data;
     } catch (e) {
       console.warn('FMP.Geo: oil-prices.json indisponible.', e);
       return null;
@@ -160,43 +170,50 @@ FMP.Geo = (function () {
   // ------------------------------------------------------------------
 
   async function loadNews(maxArticles = 15) {
+    // Stratégie : FR d'abord, puis compléter avec EN si < 5 résultats
+    const articles = [];
+    const urls = new Set();
+
+    // Étape 1 : articles français
     try {
-      const url = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc&sourcelang=fre`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        // Fallback : essayer aussi en anglais
-        const urlEn = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
-        const resEn = await fetch(urlEn);
-        if (!resEn.ok) return [];
-        const dataEn = await resEn.json();
-        return formatArticles(dataEn);
+      const urlFr = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_FR)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc&sourcelang=french`;
+      const resFr = await fetch(urlFr);
+      if (resFr.ok) {
+        const text = await resFr.text();
+        // GDELT renvoie parfois du HTML au lieu de JSON en cas d'erreur
+        if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+          const dataFr = JSON.parse(text);
+          for (const a of formatArticles(dataFr)) {
+            if (!urls.has(a.url)) { articles.push(a); urls.add(a.url); }
+          }
+        }
       }
-      const data = await res.json();
-      const articles = formatArticles(data);
-      // Si peu de résultats FR, compléter avec EN
-      if (articles.length < 5) {
-        const urlEn = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
-        try {
-          const resEn = await fetch(urlEn);
-          if (resEn.ok) {
-            const dataEn = await resEn.json();
-            const enArticles = formatArticles(dataEn);
-            // Fusionner sans doublons (par URL)
-            const urls = new Set(articles.map(a => a.url));
-            for (const a of enArticles) {
+    } catch (e) {
+      console.warn('FMP.Geo: GDELT FR échoué.', e);
+    }
+
+    // Étape 2 : compléter avec articles internationaux si besoin
+    if (articles.length < 5) {
+      try {
+        const urlAll = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
+        const resAll = await fetch(urlAll);
+        if (resAll.ok) {
+          const text = await resAll.text();
+          if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+            const dataAll = JSON.parse(text);
+            for (const a of formatArticles(dataAll)) {
               if (!urls.has(a.url) && articles.length < maxArticles) {
-                articles.push(a);
-                urls.add(a.url);
+                articles.push(a); urls.add(a.url);
               }
             }
           }
-        } catch {}
+        }
+      } catch (e) {
+        console.warn('FMP.Geo: GDELT ALL échoué.', e);
       }
-      return articles;
-    } catch (e) {
-      console.warn('FMP.Geo: GDELT indisponible.', e);
-      return [];
     }
+
+    return articles;
   }
 
   function formatArticles(gdeltData) {

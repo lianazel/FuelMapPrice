@@ -542,8 +542,7 @@ section[x-show] {
   }
   .fmp-geo-help strong { color: #F4E4B8; }
 
-  .leaflet-popup-content .fmp-pop-route { background: #2E6054; color: #ECE9E0 !important; }
-  .leaflet-popup-content .fmp-pop-route:hover { background: #3B7A6C; }
+  .leaflet-popup-content .fmp-pop-route { color: #ECE9E0 !important; }
 
   /* Rupture — dark mode */
   .fmp-badge-rupture,
@@ -941,19 +940,33 @@ section[x-show] {
   margin-top: 10px;
 }
 
-.fmp-pop-route-alt {
+.fmp-pop-route-google {
+  background: #1A3C34 !important;
+}
+.fmp-pop-route-google:hover {
+  background: #0F2721 !important;
+}
+
+.fmp-pop-route-apple {
   background: #52524E !important;
 }
-.fmp-pop-route-alt:hover {
+.fmp-pop-route-apple:hover {
   background: #3A3A36 !important;
 }
 
 @media (prefers-color-scheme: dark) {
-  .fmp-pop-route-alt {
+  .fmp-pop-route-google {
+    background: #2E6054 !important;
+    color: #ECE9E0 !important;
+  }
+  .fmp-pop-route-google:hover {
+    background: #3B7A6C !important;
+  }
+  .fmp-pop-route-apple {
     background: #3A403D !important;
     color: #ECE9E0 !important;
   }
-  .fmp-pop-route-alt:hover {
+  .fmp-pop-route-apple:hover {
     background: #4A504D !important;
   }
 }

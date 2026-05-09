@@ -448,6 +448,12 @@
         </div>
       </div>
 
+      <!-- Message si données pétrole pas encore dispo -->
+      <div x-show="!geoKpis" class="fmp-geo-help mb-6">
+        Les cours du pétrole seront disponibles après la prochaine exécution de la <strong>GitHub Action</strong>.
+        Vous pouvez la lancer manuellement depuis l'onglet <em>Actions</em> de votre dépôt.
+      </div>
+
       <!-- Oil Price Chart -->
       <div class="mb-4 flex flex-wrap gap-2 items-center">
         <span class="text-sm text-ink-soft mr-2">Période :</span>
