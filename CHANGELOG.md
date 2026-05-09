@@ -8,6 +8,22 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.5.0] — 2026-05-09
+
+### Ajouté
+- **Badge « En rupture »** : les stations dont le carburant sélectionné est en rupture de stock
+  sont marquées d'un badge rouge sur la carte (marqueur gris + point d'exclamation) et dans la liste
+- Le script `fetch-data.py` parse désormais les éléments `<rupture>` du flux XML data.gouv.fr
+- **Nouvel onglet Géopolitique** : page dédiée au contexte énergie mondial
+  - Cartes des cours Brent (Mer du Nord) et WTI (USA) avec variation jour/jour
+  - Graphique historique des cours sur 1, 3 ou 6 mois (Chart.js)
+  - Fil d'actualités énergie/pétrole filtré en temps réel via l'API GDELT
+- Nouveau module `js/geopolitics.js` — gestion des données géopolitiques
+- Le script Python génère désormais `data/oil-prices.json` (cours Brent/WTI quotidiens, source EIA)
+- La GitHub Action committe aussi `data/oil-prices.json`
+
+---
+
 ## [1.4.1] — 2026-05-09
 
 ### Ajouté

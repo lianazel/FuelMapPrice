@@ -97,10 +97,11 @@ FMP.Map = (function () {
     const prices = stations.map(s => s.price);
 
     for (const s of stations) {
-      const color = priceColor(s.price, prices);
+      const color = s.rupture ? '#6E7781' : priceColor(s.price, prices);
+      const ruptBadge = s.rupture ? '<span class="fmp-marker-rupt">!</span>' : '';
       const icon = L.divIcon({
         className: '',
-        html: `<div class="fmp-marker" style="background:${color}"><span>${s.price.toFixed(2)}</span></div>`,
+        html: `<div class="fmp-marker${s.rupture ? ' fmp-marker-rupture' : ''}" style="background:${color}"><span>${s.price.toFixed(2)}</span>${ruptBadge}</div>`,
         iconSize: [38, 38],
         iconAnchor: [19, 38],
       });
@@ -116,8 +117,12 @@ FMP.Map = (function () {
         ? `https://maps.apple.com/?daddr=${s.lat},${s.lon}&dirflg=d`
         : `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}&travelmode=driving`;
 
+      const ruptureTag = s.rupture
+        ? `<span class="fmp-pop-rupture">En rupture</span>`
+        : '';
+
       const popupHtml = `
-        <div class="fmp-pop-name">${escapeHtml(s.name || ('Station ' + s.id))}</div>
+        <div class="fmp-pop-name">${escapeHtml(s.name || ('Station ' + s.id))}${ruptureTag}</div>
         <div class="fmp-pop-addr">${escapeHtml(s.address || '')}${s.city ? ', ' + escapeHtml(s.city) : ''}</div>
         <div class="fmp-pop-price" style="color:${color}">${s.price.toFixed(3)} \u20ac</div>
         <div class="fmp-pop-fuel">${escapeHtml(fuelLabel)} \u00b7 ${s.distance.toFixed(1)} km</div>

@@ -77,6 +77,12 @@
             <span class="hidden sm:inline">Tendances</span>
             <span class="sm:hidden">📈</span>
           </button>
+          <button @click="activeTab = 'geo'"
+                  :class="activeTab === 'geo' ? 'bg-forest text-cream' : 'text-ink-soft hover:text-ink'"
+                  class="px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition">
+            <span class="hidden sm:inline">Géopolitique</span>
+            <span class="sm:hidden">🌍</span>
+          </button>
           <button @click="activeTab = 'about'"
                   :class="activeTab === 'about' ? 'bg-forest text-cream' : 'text-ink-soft hover:text-ink'"
                   class="px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition">
@@ -300,13 +306,16 @@
                   <span class="flex-none w-7 h-7 rounded-full bg-forest/10 text-forest flex items-center justify-center text-xs font-mono font-semibold mt-0.5"
                         x-text="i + 1"></span>
                   <div class="flex-1 min-w-0">
-                    <div class="font-medium text-ink truncate" x-text="station.name || ('Station ' + station.id)"></div>
+                    <div class="font-medium text-ink truncate">
+                      <span x-text="station.name || ('Station ' + station.id)"></span>
+                      <span x-show="station.rupture" class="fmp-badge-rupture">En rupture</span>
+                    </div>
                     <div class="text-xs text-ink-soft truncate" x-text="station.address + ' · ' + station.city"></div>
                     <div class="text-xs text-ink-faint mt-0.5 font-mono" x-text="station.distance.toFixed(1) + ' km · maj ' + formatDate(station.updated)"></div>
                   </div>
                   <div class="flex-none text-right">
                     <div class="font-mono font-semibold text-lg leading-none"
-                         :style="`color: ${getPriceColor(station.price)}`"
+                         :style="`color: ${station.rupture ? '#6E7781' : getPriceColor(station.price)}`"
                          x-text="station.price.toFixed(3) + '€'"></div>
                     <div class="text-[10px] uppercase tracking-wider text-ink-faint mt-1" x-text="selectedFuel"></div>
                   </div>
@@ -388,6 +397,108 @@
 
       <p class="mt-4 text-xs text-ink-faint">
         Les points correspondent à la moyenne nationale quotidienne, calculée à partir des stations rapportant un prix ce jour-là.
+      </p>
+    </section>
+
+    <!-- =================== GEOPOLITICS VIEW =================== -->
+    <section x-show="activeTab === 'geo'" class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+
+      <p class="text-xs uppercase tracking-[0.2em] text-flame font-semibold mb-2">Contexte</p>
+      <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-[1.1] mb-2">
+        Géopolitique <span class="italic text-forest">& énergie</span>
+      </h2>
+      <p class="text-ink-soft text-sm sm:text-base mb-8 max-w-2xl">
+        Cours du pétrole et actualités mondiales qui influencent les prix à la pompe.
+      </p>
+
+      <!-- Oil Price Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <!-- Brent -->
+        <div class="fmp-oil-card">
+          <div class="fmp-oil-card-header">
+            <span class="fmp-oil-card-label">Brent</span>
+            <span class="fmp-oil-card-sub">Mer du Nord · Référence Europe</span>
+          </div>
+          <div class="flex items-end gap-3">
+            <span class="fmp-oil-card-price" x-text="geoKpis?.brent ? geoKpis.brent.toFixed(2) + ' $' : '—'"></span>
+            <span class="fmp-oil-card-delta"
+                  :class="geoKpis?.brentDelta > 0 ? 'delta-up' : geoKpis?.brentDelta < 0 ? 'delta-down' : 'delta-flat'"
+                  x-show="geoKpis?.brentDelta != null"
+                  x-text="(geoKpis?.brentDelta > 0 ? '▲ +' : geoKpis?.brentDelta < 0 ? '▼ ' : '→ ') + geoKpis?.brentDelta + '%'">
+            </span>
+          </div>
+          <div class="fmp-oil-card-date" x-text="geoKpis?.date ? 'Dernière mise à jour : ' + new Date(geoKpis.date).toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'}) : ''"></div>
+        </div>
+
+        <!-- WTI -->
+        <div class="fmp-oil-card">
+          <div class="fmp-oil-card-header">
+            <span class="fmp-oil-card-label">WTI</span>
+            <span class="fmp-oil-card-sub">West Texas · Référence USA</span>
+          </div>
+          <div class="flex items-end gap-3">
+            <span class="fmp-oil-card-price" x-text="geoKpis?.wti ? geoKpis.wti.toFixed(2) + ' $' : '—'"></span>
+            <span class="fmp-oil-card-delta"
+                  :class="geoKpis?.wtiDelta > 0 ? 'delta-up' : geoKpis?.wtiDelta < 0 ? 'delta-down' : 'delta-flat'"
+                  x-show="geoKpis?.wtiDelta != null"
+                  x-text="(geoKpis?.wtiDelta > 0 ? '▲ +' : geoKpis?.wtiDelta < 0 ? '▼ ' : '→ ') + geoKpis?.wtiDelta + '%'">
+            </span>
+          </div>
+          <div class="fmp-oil-card-date" x-text="geoKpis?.date ? 'Dernière mise à jour : ' + new Date(geoKpis.date).toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'}) : ''"></div>
+        </div>
+      </div>
+
+      <!-- Oil Price Chart -->
+      <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <span class="text-sm text-ink-soft mr-2">Période :</span>
+        <template x-for="p in [{v:'30', l:'1 mois'},{v:'90', l:'3 mois'},{v:'180', l:'6 mois'}]">
+          <button @click="geoPeriod = p.v; updateGeoChart()"
+                  :class="geoPeriod === p.v ? 'bg-forest text-cream' : 'bg-paper border border-line text-ink-soft hover:text-ink'"
+                  class="px-3 py-1.5 rounded-full text-xs font-medium transition" x-text="p.l">
+          </button>
+        </template>
+      </div>
+
+      <div class="bg-paper border border-line rounded-2xl p-4 sm:p-6 shadow-sm mb-10">
+        <div class="h-[45vh] min-h-[300px] relative">
+          <canvas id="oilChart"></canvas>
+        </div>
+      </div>
+
+      <!-- News Feed -->
+      <h3 class="font-display font-bold text-xl sm:text-2xl tracking-tight mb-4">
+        Fil d'actualités <span class="text-flame">énergie</span>
+      </h3>
+      <p class="text-ink-soft text-sm mb-6">
+        Sources mondiales, filtrées sur le pétrole, l'OPEP et les marchés de l'énergie — via GDELT.
+      </p>
+
+      <div x-show="geoNewsLoading" class="text-center py-10">
+        <div class="inline-flex items-center gap-2 text-sm text-ink-soft">
+          <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/></svg>
+          Chargement des actualités…
+        </div>
+      </div>
+
+      <div x-show="!geoNewsLoading && geoNews.length === 0" class="text-center py-10">
+        <p class="text-ink-faint text-sm">Aucune actualité disponible pour le moment.</p>
+      </div>
+
+      <div class="fmp-news-grid" x-show="!geoNewsLoading && geoNews.length > 0">
+        <template x-for="(article, idx) in geoNews" :key="idx">
+          <a :href="article.url" target="_blank" rel="noopener" class="fmp-news-card">
+            <div class="fmp-news-card-body">
+              <div class="fmp-news-card-source" x-text="article.source"></div>
+              <h4 class="fmp-news-card-title" x-text="article.title"></h4>
+              <div class="fmp-news-card-date" x-text="article.date ? formatDate(article.date) : ''"></div>
+            </div>
+          </a>
+        </template>
+      </div>
+
+      <p class="mt-6 text-xs text-ink-faint">
+        Actualités fournies par <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener" class="underline hover:text-ink-soft">GDELT Project</a>.
+        Cours du pétrole : sources publiques agrégées par la GitHub Action.
       </p>
     </section>
 
@@ -558,6 +669,7 @@
   <script src="js/geocoding.js"></script>
   <script src="js/map.js"></script>
   <script src="js/trends.js"></script>
+  <script src="js/geopolitics.js"></script>
   <script src="js/preferences.js"></script>
   <script src="js/app.js"></script>
 </body>

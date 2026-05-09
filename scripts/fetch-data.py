@@ -3,18 +3,20 @@
 fetch-data.py — FuelMapPrice
 
 Télécharge le flux officiel "Prix des carburants en France — flux instantané"
-depuis donnees.roulez-eco.fr, le parse, et produit deux fichiers JSON destinés
+depuis donnees.roulez-eco.fr, le parse, et produit trois fichiers JSON destinés
 à être consommés par le front statique :
 
-  - data/stations.json   liste compacte de toutes les stations + prix courants
-  - data/history.json    moyennes nationales quotidiennes par carburant
-                         (accumulé à chaque run — 6 mois roulants)
+  - data/stations.json    liste compacte de toutes les stations + prix courants
+  - data/history.json     moyennes nationales quotidiennes par carburant
+                          (accumulé à chaque run — 6 mois roulants)
+  - data/oil-prices.json  cours Brent / WTI (6 mois roulants, source EIA/datahub.io)
 
 Exécuté automatiquement par GitHub Actions toutes les heures.
 """
 
 from __future__ import annotations
 
+import csv
 import io
 import json
 import sys
@@ -28,12 +30,17 @@ from xml.etree import ElementTree as ET
 
 DATA_URL = "https://donnees.roulez-eco.fr/opendata/instantane"
 OUT_DIR = Path(__file__).resolve().parent.parent / "data"
-STATIONS_FILE = OUT_DIR / "stations.json"
-HISTORY_FILE  = OUT_DIR / "history.json"
+STATIONS_FILE   = OUT_DIR / "stations.json"
+HISTORY_FILE    = OUT_DIR / "history.json"
+OIL_PRICES_FILE = OUT_DIR / "oil-prices.json"
 
 FUELS = ("Gazole", "SP95", "SP98", "E10", "E85", "GPLc")
 HISTORY_DAYS = 180        # 6 mois roulants
 USER_AGENT = "FuelMapPrice/1.0 (+https://github.com)"
+
+# Cours du pétrole (CSV publics, source EIA via datahub.io / GitHub datasets)
+BRENT_CSV_URL = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/brent-daily.csv"
+WTI_CSV_URL   = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
 
 
 # ---------------------------------------------------------------------------
@@ -114,11 +121,18 @@ def parse_stations(xml_bytes: bytes) -> list[dict]:
                     if latest_maj is None or maj > latest_maj:
                         latest_maj = maj
 
+            # Ruptures : carburants signalés en rupture de stock
+            ruptures: list[str] = []
+            for rupt in pdv.findall("rupture"):
+                fuel_rupt = rupt.get("nom")
+                if fuel_rupt and fuel_rupt in FUELS:
+                    ruptures.append(fuel_rupt)
+
             if not prices:
                 skipped += 1
                 continue
 
-            stations.append({
+            entry: dict = {
                 "id":      station_id,
                 "name":    name,
                 "address": address,
@@ -129,7 +143,11 @@ def parse_stations(xml_bytes: bytes) -> list[dict]:
                 "prices":  prices,
                 "updated_at":        updated_at,
                 "updated_at_global": latest_maj,
-            })
+            }
+            if ruptures:
+                entry["ruptures"] = ruptures
+
+            stations.append(entry)
         except Exception as e:
             skipped += 1
             print(f"       ! station ignorée : {e}")
@@ -205,6 +223,67 @@ def update_history(stations: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Cours du pétrole (Brent / WTI)
+# ---------------------------------------------------------------------------
+
+def fetch_oil_csv(url: str) -> dict[str, float]:
+    """Télécharge un CSV date,price et retourne {date: price}."""
+    req = Request(url, headers={"User-Agent": USER_AGENT})
+    with urlopen(req, timeout=30) as r:
+        text = r.read().decode("utf-8")
+    reader = csv.DictReader(io.StringIO(text))
+    prices: dict[str, float] = {}
+    for row in reader:
+        date = row.get("Date") or row.get("date") or ""
+        val  = row.get("Price") or row.get("price") or ""
+        if date and val:
+            try:
+                prices[date] = round(float(val), 2)
+            except ValueError:
+                continue
+    return prices
+
+
+def update_oil_prices() -> None:
+    """Fusionne les cours Brent + WTI en un seul JSON (6 mois roulants)."""
+    print("[5/5] Cours du pétrole (Brent + WTI)…")
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
+
+    try:
+        brent = fetch_oil_csv(BRENT_CSV_URL)
+        wti   = fetch_oil_csv(WTI_CSV_URL)
+    except Exception as e:
+        print(f"       ! Impossible de récupérer les cours du pétrole : {e}")
+        return
+
+    # Fusionner les dates
+    all_dates = sorted(set(list(brent.keys()) + list(wti.keys())))
+    # Filtrer les 6 derniers mois
+    all_dates = [d for d in all_dates if d >= cutoff]
+
+    days = []
+    for d in all_dates:
+        entry: dict = {"date": d}
+        if d in brent:
+            entry["brent"] = brent[d]
+        if d in wti:
+            entry["wti"] = wti[d]
+        days.append(entry)
+
+    payload = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source": "EIA via datahub.io",
+        "days": days,
+    }
+
+    OIL_PRICES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with OIL_PRICES_FILE.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
+
+    print(f"       → {len(days)} jours de cours enregistrés.")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -217,6 +296,13 @@ def main() -> int:
             return 2
         write_stations(stations)
         update_history(stations)
+
+        # Cours du pétrole (non bloquant — l'appli marche sans)
+        try:
+            update_oil_prices()
+        except Exception as e:
+            print(f"       ! Cours du pétrole ignorés : {e}")
+
         print("OK — données actualisées.")
         return 0
     except Exception as e:

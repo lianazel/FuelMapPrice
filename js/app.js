@@ -31,6 +31,13 @@ function fuelMapApp() {
     trendPeriod: '30',
     kpis: [],
 
+    // -------- Géopolitique --------
+    geoKpis: null,
+    geoOilData: null,
+    geoPeriod: '90',
+    geoNews: [],
+    geoNewsLoading: false,
+
     // -------- Préférences / UI --------
     prefsOpen: false,          // visibilit\u00e9 du panneau \u2699\ufe0f
     autocompleteEnabled: true, // copie r\u00e9active de la pr\u00e9f\u00e9rence
@@ -120,6 +127,8 @@ function fuelMapApp() {
           this.$nextTick(() => FMP.Map.getMap()?.invalidateSize());
         } else if (tab === 'trends') {
           this.$nextTick(() => this.updateChart());
+        } else if (tab === 'geo') {
+          this.$nextTick(() => this.loadGeoData());
         }
       });
 
@@ -484,6 +493,28 @@ function fuelMapApp() {
       if (this.activeTab !== 'trends') return;
       this.kpis = FMP.Trends.computeKpis(this.history, this.trendFuel, this.trendPeriod);
       FMP.Trends.render('trendChart', this.history, this.trendFuel, this.trendPeriod);
+    },
+
+    // -------- Géopolitique --------
+    async loadGeoData() {
+      // Charger les cours du pétrole (une seule fois)
+      if (!this.geoOilData) {
+        this.geoOilData = await FMP.Geo.loadOilPrices();
+        this.geoKpis = FMP.Geo.oilKpis(this.geoOilData);
+      }
+      this.updateGeoChart();
+
+      // Charger les actus (une seule fois)
+      if (this.geoNews.length === 0) {
+        this.geoNewsLoading = true;
+        this.geoNews = await FMP.Geo.loadNews(15);
+        this.geoNewsLoading = false;
+      }
+    },
+
+    updateGeoChart() {
+      if (this.activeTab !== 'geo' || !this.geoOilData) return;
+      FMP.Geo.renderOilChart('oilChart', this.geoOilData, this.geoPeriod);
     },
 
     // -------- Utilitaires --------

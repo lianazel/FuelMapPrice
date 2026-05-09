@@ -48,6 +48,7 @@ body {
 
 /* Marqueur personnalisé */
 .fmp-marker {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,6 +77,61 @@ body {
   background: #E85D04;
   border: 4px solid #FFFFFF;
   box-shadow: 0 0 0 2px #E85D04, 0 4px 14px rgba(232, 93, 4, 0.45);
+}
+
+/* Marqueur en rupture */
+.fmp-marker-rupture {
+  opacity: 0.7;
+  border-style: dashed;
+}
+.fmp-marker-rupt {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  transform: rotate(45deg);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #CF222E;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Badge rupture dans la liste */
+.fmp-badge-rupture {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #CF222E;
+  color: #FFFFFF;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  margin-left: 6px;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+/* Badge rupture dans le popup */
+.fmp-pop-rupture {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #CF222E;
+  color: #FFFFFF;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 /* Popup Leaflet */
@@ -488,6 +544,118 @@ section[x-show] {
 
   .leaflet-popup-content .fmp-pop-route { background: #2E6054; color: #ECE9E0 !important; }
   .leaflet-popup-content .fmp-pop-route:hover { background: #3B7A6C; }
+
+  /* Rupture — dark mode */
+  .fmp-badge-rupture,
+  .fmp-pop-rupture { background: #A82020; }
+  .fmp-marker-rupt { background: #A82020; }
+}
+
+/* ===================================================================
+ * Page Géopolitique — cartes pétrole + fil d'actus
+ * =================================================================== */
+
+/* Oil price cards */
+.fmp-oil-card {
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(15, 15, 14, 0.05);
+}
+.fmp-oil-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fmp-oil-card-label {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #0F0F0E;
+}
+.fmp-oil-card-sub {
+  font-size: 12px;
+  color: #52524E;
+}
+.fmp-oil-card-price {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 32px;
+  color: #0F0F0E;
+  line-height: 1;
+}
+.fmp-oil-card-delta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+.fmp-oil-card-delta.delta-up   { color: #CF222E; background: rgba(207, 34, 46, 0.08); }
+.fmp-oil-card-delta.delta-down { color: #1A7F37; background: rgba(26, 127, 55, 0.08); }
+.fmp-oil-card-delta.delta-flat { color: #52524E; background: rgba(82, 82, 78, 0.08); }
+.fmp-oil-card-date {
+  font-size: 11px;
+  color: #A9A9A1;
+  margin-top: 8px;
+}
+
+/* News grid */
+.fmp-news-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .fmp-news-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .fmp-news-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.fmp-news-card {
+  display: block;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D7;
+  border-radius: 14px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 1px 4px rgba(15, 15, 14, 0.04);
+}
+.fmp-news-card:hover {
+  border-color: #1A3C34;
+  box-shadow: 0 4px 16px rgba(15, 15, 14, 0.1);
+  transform: translateY(-1px);
+}
+.fmp-news-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fmp-news-card-source {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #E85D04;
+}
+.fmp-news-card-title {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F0F0E;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fmp-news-card-date {
+  font-size: 11px;
+  color: #A9A9A1;
 }
 
 /* ===================================================================
@@ -584,6 +752,20 @@ section[x-show] {
 
   /* Ombres plus subtiles */
   .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important; }
+
+  /* Géopolitique — dark mode */
+  .fmp-oil-card { background: #161C19; border-color: #2A2F2C; }
+  .fmp-oil-card-label { color: #ECE9E0; }
+  .fmp-oil-card-sub { color: #A9A9A1; }
+  .fmp-oil-card-price { color: #ECE9E0; }
+  .fmp-oil-card-delta.delta-up   { color: #E58873; background: rgba(207, 34, 46, 0.15); }
+  .fmp-oil-card-delta.delta-down { color: #6FCF8B; background: rgba(26, 127, 55, 0.15); }
+  .fmp-oil-card-delta.delta-flat { color: #A9A9A1; background: rgba(82, 82, 78, 0.15); }
+  .fmp-news-card { background: #161C19; border-color: #2A2F2C; }
+  .fmp-news-card:hover { border-color: #5BB89E; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+  .fmp-news-card-source { color: #FF7A2E; }
+  .fmp-news-card-title { color: #ECE9E0; }
+  .fmp-news-card-date { color: #A9A9A1; }
 }
 
 

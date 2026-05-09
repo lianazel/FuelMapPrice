@@ -39,6 +39,6 @@ jobs:
             exit 0
           fi
 
-          git add data/stations.json data/history.json
+          git add data/stations.json data/history.json data/oil-prices.json
           git commit -m "chore(data): refresh $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push

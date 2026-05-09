@@ -53,11 +53,15 @@ FMP.Data = (function () {
       const d = distanceKm(refLat, refLon, s.lat, s.lon);
       if (d > radiusKm) continue;
 
+      // Rupture : le carburant sélectionné est-il signalé en rupture ?
+      const isRupture = Array.isArray(s.ruptures) && s.ruptures.includes(fuel);
+
       r.push({
         ...s,
         price,
         distance: d,
         updated: s.updated_at && s.updated_at[fuel] ? s.updated_at[fuel] : s.updated_at_global,
+        rupture: isRupture,
       });
     }
     r.sort((a, b) => a.price - b.price);
