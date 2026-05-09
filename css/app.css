@@ -586,3 +586,165 @@ section[x-show] {
   .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) !important; }
 }
 
+
+/* ===================================================================
+ * 📱 NAVIGATION MOBILE PAR PAGES
+ * Sur mobile (< 1024px), l'onglet Carte est découpé en 3 pages :
+ *   - search : Hero + Filtres + boutons d'action
+ *   - list   : Liste des stations
+ *   - map    : Carte Leaflet
+ * Sur desktop, tout reste affiché simultanément.
+ * =================================================================== */
+
+/* Barre de navigation mobile (Retour + Accueil) */
+.fmp-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .fmp-mobile-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #E8E2D7;
+  }
+
+  .fmp-mobile-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #E8E2D7;
+    background: #FFFFFF;
+    color: #0F0F0E;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .fmp-mobile-nav-btn:hover,
+  .fmp-mobile-nav-btn:active {
+    background: #F6F2E9;
+    border-color: #1A3C34;
+    color: #1A3C34;
+  }
+
+  /* Boutons d'action (Voir les stations / Voir la carte) */
+  .fmp-mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .fmp-mobile-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #E8E2D7;
+    background: #FFFFFF;
+    color: #0F0F0E;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+  .fmp-mobile-action-btn:hover,
+  .fmp-mobile-action-btn:active {
+    background: #F6F2E9;
+    border-color: #1A3C34;
+  }
+  .fmp-mobile-action-btn > span:first-of-type {
+    flex: 1;
+  }
+  .fmp-mobile-action-btn > svg:last-child {
+    color: #A8A59E;
+    flex: none;
+  }
+
+  /* Badge compteur de stations */
+  .fmp-mobile-action-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 12px;
+    background: #1A3C34;
+    color: #FAF7F2;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: "JetBrains Mono", monospace;
+    line-height: 1;
+  }
+
+  /* Liste des stations en mode plein écran sur mobile */
+  .fmp-mobile-list-scroll {
+    max-height: calc(100vh - 220px) !important;
+  }
+
+  /* Carte plus haute sur mobile quand elle occupe toute la page */
+  .fmp-mobile-map-height {
+    height: calc(100vh - 260px) !important;
+    min-height: 350px !important;
+  }
+}
+
+/* On masque les boutons d'action mobile sur desktop */
+@media (min-width: 1024px) {
+  .fmp-mobile-actions {
+    display: none !important;
+  }
+  .fmp-mobile-nav {
+    display: none !important;
+  }
+}
+
+/* ===================================================================
+ * 🌙 Dark mode — styles mobile navigation
+ * =================================================================== */
+@media (prefers-color-scheme: dark) {
+  .fmp-mobile-nav {
+    border-bottom-color: #2A2F2C;
+  }
+
+  .fmp-mobile-nav-btn {
+    background: #161C19;
+    border-color: #2A2F2C;
+    color: #ECE9E0;
+  }
+  .fmp-mobile-nav-btn:hover,
+  .fmp-mobile-nav-btn:active {
+    background: #1F2622;
+    border-color: #5BB89E;
+    color: #5BB89E;
+  }
+
+  .fmp-mobile-action-btn {
+    background: #161C19;
+    border-color: #2A2F2C;
+    color: #ECE9E0;
+  }
+  .fmp-mobile-action-btn:hover,
+  .fmp-mobile-action-btn:active {
+    background: #1F2622;
+    border-color: #5BB89E;
+  }
+  .fmp-mobile-action-btn > svg:last-child {
+    color: #6E6E66;
+  }
+
+  .fmp-mobile-action-count {
+    background: #5BB89E;
+    color: #0E1412;
+  }
+}
+

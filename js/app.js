@@ -7,6 +7,11 @@ function fuelMapApp() {
     // -------- Navigation --------
     activeTab: 'map',
 
+    // -------- Mobile page navigation --------
+    isMobile: false,
+    mobilePage: 'search',      // 'search' | 'list' | 'map'
+    _mobileHistory: [],        // pile de navigation pour le bouton Retour
+
     // -------- Données --------
     stations: [],
     history: null,
@@ -64,6 +69,18 @@ function fuelMapApp() {
       this.autocompleteEnabled = FMP.Prefs.get('autocomplete');
       this.persistPrefs        = FMP.Prefs.isPersisted();
 
+      // Détection mobile et écoute du redimensionnement
+      this._detectMobile();
+      window.addEventListener('resize', () => this._detectMobile());
+
+      // Gestion du bouton retour navigateur (History API)
+      window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.mobilePage) {
+          this.mobilePage = e.state.mobilePage;
+          this._invalidateMapIfNeeded();
+        }
+      });
+
       // Carte init immédiat pour que le viewport soit prêt
       FMP.Map.init('map');
 
@@ -82,6 +99,11 @@ function fuelMapApp() {
       this.$watch('trendFuel',   () => this.updateChart());
       this.$watch('trendPeriod', () => this.updateChart());
       this.$watch('activeTab', (tab) => {
+        // Réinitialiser la navigation mobile quand on change d'onglet
+        if (this.isMobile) {
+          this.mobilePage = 'search';
+          this._mobileHistory = [];
+        }
         if (tab === 'map') {
           this.$nextTick(() => FMP.Map.getMap()?.invalidateSize());
         } else if (tab === 'trends') {
@@ -378,6 +400,64 @@ function fuelMapApp() {
       this.autocompleteEnabled = FMP.Prefs.DEFAULTS.autocomplete;
       this.persistPrefs = false;
       this.statusMessage = 'Pr\u00e9f\u00e9rences r\u00e9initialis\u00e9es.';
+    },
+
+    // ============================================================
+    // Navigation mobile par pages
+    // ============================================================
+
+    /** Détecte si on est en mode mobile (< 1024px) */
+    _detectMobile() {
+      const wasMobile = this.isMobile;
+      this.isMobile = window.innerWidth < 1024;
+      // Si on passe de mobile à desktop, on réinitialise la page
+      if (wasMobile && !this.isMobile) {
+        this.mobilePage = 'search';
+        this._mobileHistory = [];
+      }
+    },
+
+    /** Naviguer vers une page mobile */
+    mobileGo(page) {
+      if (!this.isMobile) return;
+      this._mobileHistory.push(this.mobilePage);
+      this.mobilePage = page;
+      history.pushState({ mobilePage: page }, '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this._invalidateMapIfNeeded();
+    },
+
+    /** Retour à la page précédente */
+    mobileBack() {
+      if (this._mobileHistory.length > 0) {
+        this.mobilePage = this._mobileHistory.pop();
+      } else {
+        this.mobilePage = 'search';
+      }
+      history.pushState({ mobilePage: this.mobilePage }, '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this._invalidateMapIfNeeded();
+    },
+
+    /** Retour direct à la page d'accueil (search) */
+    mobileGoHome() {
+      this.mobilePage = 'search';
+      this._mobileHistory = [];
+      history.pushState({ mobilePage: 'search' }, '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    /** Invalide le dimensionnement de la carte après un changement de page */
+    _invalidateMapIfNeeded() {
+      if (this.mobilePage === 'map') {
+        this.$nextTick(() => {
+          FMP.Map.getMap()?.invalidateSize();
+          // Re-centrer si on a un point de référence
+          if (this.refPoint) {
+            FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
+          }
+        });
+      }
     },
 
     // -------- Tendances --------

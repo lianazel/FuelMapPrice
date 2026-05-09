@@ -95,8 +95,20 @@
     <!-- =================== MAP VIEW =================== -->
     <section x-show="activeTab === 'map'" class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
 
-      <!-- Hero -->
-      <div class="mb-6 lg:mb-8">
+      <!-- Mobile navigation bar (visible only on mobile, on sub-pages) -->
+      <div x-show="isMobile && mobilePage !== 'search'" x-transition class="fmp-mobile-nav">
+        <button @click="mobileBack()" class="fmp-mobile-nav-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span>Retour</span>
+        </button>
+        <button @click="mobileGoHome()" class="fmp-mobile-nav-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Accueil</span>
+        </button>
+      </div>
+
+      <!-- Hero (mobile: search page only) -->
+      <div x-show="!isMobile || mobilePage === 'search'" class="mb-6 lg:mb-8">
         <p class="text-xs uppercase tracking-[0.2em] text-flame font-semibold mb-2">Carte interactive</p>
         <h1 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.05] max-w-3xl">
           Trouvez le carburant <span class="italic text-forest">le moins cher</span> autour de vous.
@@ -106,8 +118,8 @@
         </p>
       </div>
 
-      <!-- Filters bar -->
-      <div class="bg-paper border border-line rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
+      <!-- Filters bar (mobile: search page only) -->
+      <div x-show="!isMobile || mobilePage === 'search'" class="bg-paper border border-line rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 items-end">
 
           <!-- City -->
@@ -231,12 +243,27 @@
         </div>
       </div>
 
+      <!-- Mobile action buttons (visible only on mobile search page) -->
+      <div x-show="isMobile && mobilePage === 'search'" x-transition class="fmp-mobile-actions">
+        <button @click="mobileGo('list')" class="fmp-mobile-action-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Voir les stations</span>
+          <span class="fmp-mobile-action-count" x-show="filteredStations.length > 0" x-text="filteredStations.length"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button @click="mobileGo('map')" class="fmp-mobile-action-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>Voir la carte</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
       <!-- Map + List grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
+      <div x-show="!isMobile || mobilePage === 'list' || mobilePage === 'map'" class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
 
         <!-- Map -->
-        <div class="lg:col-span-3 order-2 lg:order-1">
-          <div id="map" class="w-full h-[50vh] lg:h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border border-line shadow-sm"></div>
+        <div x-show="!isMobile || mobilePage === 'map'" class="lg:col-span-3 order-2 lg:order-1">
+          <div id="map" class="w-full fmp-mobile-map-height h-[50vh] lg:h-[70vh] min-h-[400px] rounded-2xl overflow-hidden border border-line shadow-sm"></div>
           <div class="mt-2 flex items-center justify-between gap-3 flex-wrap">
             <p class="text-xs text-ink-faint flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -252,14 +279,14 @@
         </div>
 
         <!-- List -->
-        <aside class="lg:col-span-2 order-1 lg:order-2">
+        <aside x-show="!isMobile || mobilePage === 'list'" class="lg:col-span-2 order-1 lg:order-2">
           <div class="bg-paper border border-line rounded-2xl shadow-sm h-full flex flex-col overflow-hidden">
             <div class="px-5 py-4 border-b border-line flex items-baseline justify-between">
               <h2 class="font-display font-semibold text-lg">Stations proches</h2>
               <span class="text-xs text-ink-faint font-mono">Trié par prix ↑</span>
             </div>
 
-            <div class="overflow-y-auto max-h-[50vh] lg:max-h-[calc(70vh-60px)]">
+            <div class="overflow-y-auto fmp-mobile-list-scroll max-h-[50vh] lg:max-h-[calc(70vh-60px)]">
               <template x-if="filteredStations.length === 0 && dataStatus === 'loaded'">
                 <div class="p-6 text-center text-ink-soft text-sm">
                   Aucune station ne correspond aux critères.<br/>
@@ -268,7 +295,7 @@
               </template>
 
               <template x-for="(station, i) in filteredStations" :key="station.id">
-                <button @click="focusStation(station)"
+                <button @click="focusStation(station); if(isMobile) mobileGo('map')"
                         class="w-full text-left px-5 py-4 border-b border-line/70 last:border-0 hover:bg-cream/60 transition flex gap-3 items-start">
                   <span class="flex-none w-7 h-7 rounded-full bg-forest/10 text-forest flex items-center justify-center text-xs font-mono font-semibold mt-0.5"
                         x-text="i + 1"></span>
@@ -290,8 +317,8 @@
         </aside>
       </div>
 
-      <!-- Legend -->
-      <div class="mt-6 flex flex-wrap gap-2 text-xs">
+      <!-- Legend (hidden on mobile sub-pages) -->
+      <div x-show="!isMobile || mobilePage === 'search'" class="mt-6 flex flex-wrap gap-2 text-xs">
         <span class="text-ink-soft mr-2">Légende prix :</span>
         <span class="px-2 py-1 rounded-full bg-[#1A7F37] text-white font-mono">moins cher</span>
         <span class="px-2 py-1 rounded-full bg-[#D4A72C] text-white font-mono">médian</span>
