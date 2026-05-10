@@ -25,11 +25,11 @@ FMP.Map = (function () {
 
     // Cluster group pour regrouper les marqueurs proches
     clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 45,
+      maxClusterRadius: 60,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
-      disableClusteringAtZoom: 14,
+      disableClusteringAtZoom: 13,
       iconCreateFunction: function (cluster) {
         const count = cluster.getChildCount();
         let size = 'small';
