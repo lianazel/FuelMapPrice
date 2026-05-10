@@ -43,6 +43,7 @@ function fuelMapApp() {
     prefsTip: false,           // toast \u00ab Personnalisez votre app \u00bb
     autocompleteEnabled: true, // copie r\u00e9active de la pr\u00e9f\u00e9rence
     newsIntlEnabled: false,    // actus internationales (toutes langues) ou FR/EN uniquement
+    clusteringEnabled: true,   // regroupement des marqueurs proches
     persistPrefs: false,       // copie r\u00e9active du flag de persistance
     geoError: null,            // null | 'denied' | 'unavailable' | 'timeout'
 
@@ -78,6 +79,7 @@ function fuelMapApp() {
       FMP.Prefs.init();
       this.autocompleteEnabled = FMP.Prefs.get('autocomplete');
       this.newsIntlEnabled     = FMP.Prefs.get('newsIntl');
+      this.clusteringEnabled   = FMP.Prefs.get('clustering');
       this.persistPrefs        = FMP.Prefs.isPersisted();
 
       // Restaurer la dernière ville, carburant et rayon mémorisés
@@ -102,6 +104,7 @@ function fuelMapApp() {
 
       // Carte init immédiat pour que le viewport soit prêt
       FMP.Map.init('map');
+      FMP.Map.setClusteringEnabled(this.clusteringEnabled);
 
       // Click sur la carte → reverse-geocode + recentrage sur la ville trouvée
       FMP.Map.onMapClick((lat, lon) => this.handleMapClick(lat, lon));
@@ -451,6 +454,11 @@ function fuelMapApp() {
     togglePref(key, value) {
       FMP.Prefs.set(key, value);
       if (key === 'autocomplete') this.autocompleteEnabled = value;
+      if (key === 'clustering') {
+        this.clusteringEnabled = value;
+        FMP.Map.setClusteringEnabled(value);
+        FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
+      }
       if (key === 'newsIntl') {
         this.newsIntlEnabled = value;
         // Recharger les actus avec le nouveau filtre
@@ -474,6 +482,8 @@ function fuelMapApp() {
       FMP.Prefs.clear();
       this.autocompleteEnabled = FMP.Prefs.DEFAULTS.autocomplete;
       this.newsIntlEnabled     = FMP.Prefs.DEFAULTS.newsIntl;
+      this.clusteringEnabled   = FMP.Prefs.DEFAULTS.clustering;
+      FMP.Map.setClusteringEnabled(true);
       this.persistPrefs = false;
       // R\u00e9initialiser ville/carburant/rayon aux valeurs par d\u00e9faut
       this.cityInput    = 'Paris';

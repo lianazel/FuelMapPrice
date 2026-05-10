@@ -10,6 +10,7 @@ FMP.Map = (function () {
   let refMarker = null;
   let radiusCircle = null;
   let clusterGroup = null;
+  let clusteringEnabled = true;
   const stationMarkers = new Map(); // id -> marker
 
   function init(containerId, center = [46.6, 2.5], zoom = 6) {
@@ -114,9 +115,20 @@ FMP.Map = (function () {
     return '#CF222E';                    // rouge
   }
 
+  function setClusteringEnabled(enabled) {
+    clusteringEnabled = enabled;
+  }
+
+  function isClusteringEnabled() {
+    return clusteringEnabled;
+  }
+
   function renderStations(stations, fuelLabel) {
     // Clear previous
     if (clusterGroup) clusterGroup.clearLayers();
+    for (const m of stationMarkers.values()) {
+      if (!clusteringEnabled) m.remove();
+    }
     stationMarkers.clear();
     if (!stations || stations.length === 0) return;
 
@@ -165,7 +177,11 @@ FMP.Map = (function () {
       const m = L.marker([s.lat, s.lon], { icon })
         .bindPopup(popupHtml, { closeButton: false, offset: [0, -10] });
 
-      clusterGroup.addLayer(m);
+      if (clusteringEnabled) {
+        clusterGroup.addLayer(m);
+      } else {
+        m.addTo(map);
+      }
       stationMarkers.set(s.id, m);
     }
   }
@@ -173,10 +189,15 @@ FMP.Map = (function () {
   function focusStation(station) {
     const m = stationMarkers.get(station.id);
     if (!m) return;
-    // Zoom au niveau qui désactive le clustering, puis ouvre le popup
-    clusterGroup.zoomToShowLayer(m, function () {
+    if (clusteringEnabled) {
+      // Zoom au niveau qui désactive le clustering, puis ouvre le popup
+      clusterGroup.zoomToShowLayer(m, function () {
+        m.openPopup();
+      });
+    } else {
+      map.setView([station.lat, station.lon], 14, { animate: true });
       m.openPopup();
-    });
+    }
   }
 
   /**
@@ -231,5 +252,7 @@ FMP.Map = (function () {
     onMapClick,
     priceColor,
     refresh,
+    setClusteringEnabled,
+    isClusteringEnabled,
   };
 })();
