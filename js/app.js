@@ -58,6 +58,7 @@ function fuelMapApp() {
     showSuggestions: false,
     _autocompleteTimer: null,
     _lastQuery: '',            // \u00e9vite les requ\u00eates redondantes
+    _radiusTimer: null,        // debounce pour le slider rayon
 
     // -------- Computed --------
     get filteredStations() {
@@ -106,13 +107,24 @@ function fuelMapApp() {
       FMP.Map.onMapClick((lat, lon) => this.handleMapClick(lat, lon));
 
       // Réactivité : dès que filteredStations change, on redessine la carte
+      // (mais PAS pendant le glissement du slider — le debounce s'en charge)
       this.$watch('filteredStations', (list) => {
-        FMP.Map.renderStations(list, this.selectedFuel);
-      });
-      this.$watch('radius', () => {
-        if (this.refPoint) {
-          FMP.Map.setReference(this.refPoint.lat, this.refPoint.lon, this.refPoint.label, this.radius);
+        if (!this._radiusDragging) {
+          FMP.Map.renderStations(list, this.selectedFuel);
         }
+      });
+      // Debounce du slider rayon : on attend que l'utilisateur lâche pour recalculer
+      this._radiusDragging = false;
+      this.$watch('radius', () => {
+        this._radiusDragging = true;
+        clearTimeout(this._radiusTimer);
+        this._radiusTimer = setTimeout(() => {
+          this._radiusDragging = false;
+          if (this.refPoint) {
+            FMP.Map.setReference(this.refPoint.lat, this.refPoint.lon, this.refPoint.label, this.radius);
+          }
+          FMP.Map.renderStations(this.filteredStations, this.selectedFuel);
+        }, 250);
       });
       // Sauvegarde automatique des choix utilisateur dans les préférences
       this.$watch('selectedFuel', (v) => FMP.Prefs.set('fuel', v));
