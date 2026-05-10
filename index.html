@@ -214,12 +214,21 @@
             </div>
             <!-- Mobile: boutons preset -->
             <div class="flex md:hidden gap-1.5">
-              <template x-for="r in [5, 10, 20, 30, 50]" :key="r">
-                <button @click="radius = r"
-                        :class="radius === r ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
-                        class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition"
-                        x-text="r"></button>
-              </template>
+              <button @click="radius = 5"
+                      :class="radius == 5 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                      class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">5</button>
+              <button @click="radius = 10"
+                      :class="radius == 10 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                      class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">10</button>
+              <button @click="radius = 20"
+                      :class="radius == 20 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                      class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">20</button>
+              <button @click="radius = 30"
+                      :class="radius == 30 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                      class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">30</button>
+              <button @click="radius = 50"
+                      :class="radius == 50 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
+                      class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">50</button>
             </div>
           </div>
         </div>
