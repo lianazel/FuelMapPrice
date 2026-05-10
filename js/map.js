@@ -9,6 +9,7 @@ FMP.Map = (function () {
   let map = null;
   let refMarker = null;
   let radiusCircle = null;
+  let clusterGroup = null;
   const stationMarkers = new Map(); // id -> marker
 
   function init(containerId, center = [46.6, 2.5], zoom = 6) {
@@ -21,6 +22,27 @@ FMP.Map = (function () {
       maxZoom: 19,
       attribution: '© OpenStreetMap',
     }).addTo(map);
+
+    // Cluster group pour regrouper les marqueurs proches
+    clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 45,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 14,
+      iconCreateFunction: function (cluster) {
+        const count = cluster.getChildCount();
+        let size = 'small';
+        if (count >= 20) size = 'large';
+        else if (count >= 8) size = 'medium';
+        return L.divIcon({
+          html: '<div class="fmp-cluster fmp-cluster-' + size + '"><span>' + count + '</span></div>',
+          className: '',
+          iconSize: L.point(40, 40),
+        });
+      },
+    });
+    map.addLayer(clusterGroup);
 
     return map;
   }
@@ -90,7 +112,7 @@ FMP.Map = (function () {
 
   function renderStations(stations, fuelLabel) {
     // Clear previous
-    for (const m of stationMarkers.values()) m.remove();
+    if (clusterGroup) clusterGroup.clearLayers();
     stationMarkers.clear();
     if (!stations || stations.length === 0) return;
 
@@ -137,9 +159,9 @@ FMP.Map = (function () {
       `;
 
       const m = L.marker([s.lat, s.lon], { icon })
-        .bindPopup(popupHtml, { closeButton: false, offset: [0, -10] })
-        .addTo(map);
+        .bindPopup(popupHtml, { closeButton: false, offset: [0, -10] });
 
+      clusterGroup.addLayer(m);
       stationMarkers.set(s.id, m);
     }
   }
@@ -147,8 +169,10 @@ FMP.Map = (function () {
   function focusStation(station) {
     const m = stationMarkers.get(station.id);
     if (!m) return;
-    map.setView([station.lat, station.lon], 14, { animate: true });
-    m.openPopup();
+    // Zoom au niveau qui désactive le clustering, puis ouvre le popup
+    clusterGroup.zoomToShowLayer(m, function () {
+      m.openPopup();
+    });
   }
 
   /**

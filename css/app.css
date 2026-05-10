@@ -103,6 +103,59 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+/* Clusters de marqueurs */
+.fmp-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  border: 2.5px solid #FFFFFF;
+  transition: transform 0.15s ease;
+}
+.fmp-cluster:hover {
+  transform: scale(1.12);
+}
+.fmp-cluster span {
+  line-height: 1;
+  font-size: 13px;
+}
+.fmp-cluster-small {
+  background: #1A7F37;
+  width: 36px;
+  height: 36px;
+}
+.fmp-cluster-small span { font-size: 12px; }
+.fmp-cluster-medium {
+  background: #D4A72C;
+  width: 42px;
+  height: 42px;
+}
+.fmp-cluster-medium span { font-size: 13px; }
+.fmp-cluster-large {
+  background: #CF222E;
+  width: 48px;
+  height: 48px;
+}
+.fmp-cluster-large span { font-size: 14px; }
+
+/* Override les styles par défaut de MarkerCluster.Default.css */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: none !important;
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: none !important;
+}
+
 /* Badge rupture dans la liste */
 .fmp-badge-rupture {
   display: inline-block;
@@ -548,6 +601,12 @@ section[x-show] {
   .fmp-badge-rupture,
   .fmp-pop-rupture { background: #A82020; }
   .fmp-marker-rupt { background: #A82020; }
+
+  /* Clusters — dark mode */
+  .fmp-cluster { border-color: #1E2A25; }
+  .fmp-cluster-small  { background: #27A745; }
+  .fmp-cluster-medium { background: #E0B636; }
+  .fmp-cluster-large  { background: #E04040; }
 }
 
 /* ===================================================================
@@ -978,14 +1037,14 @@ section[x-show] {
 .fmp-prefs-toast {
   position: fixed;
   bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: 16px;
+  margin: 0 auto;
   z-index: 9999;
   display: flex;
   align-items: center;
   gap: 12px;
   max-width: 480px;
-  width: calc(100% - 32px);
   padding: 14px 16px;
   border-radius: 16px;
   background: #1A3C34;

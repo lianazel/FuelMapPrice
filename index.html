@@ -18,6 +18,9 @@
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet MarkerCluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
   <!-- Tailwind (Play CDN — zero build) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -682,11 +685,11 @@
     <!-- Toast « Personnalisez votre app » — affiché une seule fois -->
     <div x-show="prefsTip"
          x-transition:enter="transition ease-out duration-500"
-         x-transition:enter-start="translate-y-full opacity-0"
-         x-transition:enter-end="translate-y-0 opacity-100"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-300"
-         x-transition:leave-start="translate-y-0 opacity-100"
-         x-transition:leave-end="translate-y-full opacity-0"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
          class="fmp-prefs-toast" x-cloak>
       <div class="fmp-prefs-toast-icon">⚙️</div>
       <div class="fmp-prefs-toast-body">
@@ -702,6 +705,7 @@
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 

@@ -150,7 +150,7 @@ function fuelMapApp() {
      * Ne s'affiche qu'une seule fois par version.
      */
     _showPrefsTipIfNeeded() {
-      const TIP_KEY = 'fmp.prefsTipSeen';
+      const TIP_KEY = 'fmp.prefsTip.v2';
       const currentVersion = FMP.Version?.number || '1';
       try {
         const seen = localStorage.getItem(TIP_KEY);
