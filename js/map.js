@@ -30,6 +30,10 @@ FMP.Map = (function () {
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 15,
+      chunkedLoading: true,
+      chunkInterval: 100,
+      chunkDelay: 20,
+      animate: false,
       iconCreateFunction: function (cluster) {
         const count = cluster.getChildCount();
         let size = 'small';
