@@ -8,6 +8,24 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.0] — 2026-05-10
+
+### Ajouté
+- **Clustering des marqueurs** : les stations proches sont regroupées en bulles
+  numériques colorées (vert/ambre/rouge) grâce à Leaflet.markercluster, réduisant
+  la surcharge visuelle sur les grands rayons
+- **Boutons rayon tactiles sur mobile** : le slider est remplacé par 5 boutons
+  preset (5 / 10 / 20 / 30 / 50 km) pour une sélection rapide au doigt
+- **Toggle clustering dans Préférences** : possibilité de désactiver le
+  regroupement des marqueurs si l'appareil rame
+
+### Amélioré
+- **Performance carte** : chargement des marqueurs par lots (`chunkedLoading`),
+  animations désactivées, debounce du slider rayon — le navigateur ne chauffe plus
+- **Toast mobile** : correction du centrage CSS et de l'animation sur iOS
+
+---
+
 ## [1.5.0] — 2026-05-09
 
 ### Ajouté
