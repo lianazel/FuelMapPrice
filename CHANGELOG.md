@@ -8,6 +8,15 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.5] — 2026-05-22
+
+### Documentation
+- Ajout de la section « Règles de sécurité » dans CLAUDE.md — garde-fou
+  permanent pour le code futur. Clôture du cycle d'audit initié en v1.6.0
+  (22 findings, corrigés en v1.6.1–v1.6.4).
+
+---
+
 ## [1.6.4] — 2026-05-22
 
 ### Modifié
