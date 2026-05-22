@@ -9,15 +9,31 @@ FMP.Data = (function () {
   const STATIONS_URL = 'data/stations.json';
   const HISTORY_URL  = 'data/history.json';
 
+  /**
+   * fetch() avec timeout — évite de bloquer l'UI sur « Chargement… »
+   * si un serveur (Nominatim, GDELT, raw github…) ne répond pas.
+   * Réutilisable par tous les modules via FMP.Data.fetchWithTimeout.
+   */
+  async function fetchWithTimeout(url, options = {}, ms = 10000) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(url, { ...options, signal: ctrl.signal });
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
   async function loadStations() {
-    const res = await fetch(STATIONS_URL, { cache: 'no-cache' });
+    // 15 s : le JSON pèse ~3 Mo, on laisse une marge pour les connexions lentes.
+    const res = await fetchWithTimeout(STATIONS_URL, { cache: 'no-cache' }, 15000);
     if (!res.ok) throw new Error(`Échec du chargement des stations (HTTP ${res.status})`);
     return await res.json();
   }
 
   async function loadHistory() {
     try {
-      const res = await fetch(HISTORY_URL, { cache: 'no-cache' });
+      const res = await fetchWithTimeout(HISTORY_URL, { cache: 'no-cache' }, 10000);
       if (!res.ok) return null;
       return await res.json();
     } catch (e) {
@@ -73,5 +89,6 @@ FMP.Data = (function () {
     loadHistory,
     distanceKm,
     filterStations,
+    fetchWithTimeout,
   };
 })();

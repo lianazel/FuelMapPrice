@@ -28,9 +28,9 @@ FMP.Geocoding = (function () {
       addressdetails: '0',
     });
 
-    const res = await fetch(`${ENDPOINT}?${params.toString()}`, {
+    const res = await FMP.Data.fetchWithTimeout(`${ENDPOINT}?${params.toString()}`, {
       headers: { 'Accept': 'application/json' },
-    });
+    }, 5000);
     if (!res.ok) throw new Error('Géocodage indisponible');
     const data = await res.json();
     if (!data || data.length === 0) return null;
@@ -63,9 +63,9 @@ FMP.Geocoding = (function () {
     });
 
     try {
-      const res = await fetch(`${ENDPOINT}?${params.toString()}`, {
+      const res = await FMP.Data.fetchWithTimeout(`${ENDPOINT}?${params.toString()}`, {
         headers: { 'Accept': 'application/json' },
-      });
+      }, 5000);
       if (!res.ok) return [];
       const data = await res.json();
       if (!Array.isArray(data)) return [];
@@ -98,7 +98,11 @@ FMP.Geocoding = (function () {
       zoom: '12', // niveau ville/commune
       addressdetails: '1',
     });
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`);
+    const res = await FMP.Data.fetchWithTimeout(
+      `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
+      {},
+      5000,
+    );
     if (!res.ok) return null;
     const data = await res.json();
     if (!data || !data.address) return null;

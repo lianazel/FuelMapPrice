@@ -8,6 +8,13 @@
   <meta name="theme-color" content="#0E1412" media="(prefers-color-scheme: dark)" />
 
   <!--
+    Referrer policy : seule l'origine (https://lianazel.github.io) est
+    transmise dans Referer aux sites externes (GDELT, Google Maps, fonts…).
+    Le chemin / les query strings restent privés.
+  -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!--
     Content Security Policy — défense en profondeur côté navigateur.
     'unsafe-inline' + 'unsafe-eval' sont des compromis nécessaires pour
     Tailwind Play CDN (compile le CSS dans le navigateur) et Alpine.js

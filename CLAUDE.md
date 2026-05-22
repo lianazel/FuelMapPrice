@@ -98,6 +98,7 @@ Le composant Alpine `fuelMapApp()` dans `app.js` orchestre tout et expose l'éta
 
 ## Pièges connus
 
+- **Tailwind Play CDN et sécurité** : `cdn.tailwindcss.com` est un script de runtime qui compile le CSS dans le navigateur. Il nécessite `'unsafe-inline'` + `'unsafe-eval'` dans la CSP et ne supporte pas SRI (contenu dynamique). C'est un compromis accepté pour la stratégie zéro-build. Si ce CDN était compromis, l'impact serait une XSS totale. Ce risque est jugé acceptable pour un projet personnel hébergé sur GitHub Pages, mais devrait être réévalué si le projet gagne en audience.
 - **Tailwind Play CDN** : pas de `@apply`, pas de classes dynamiques construites par concaténation de strings. Les classes doivent apparaître en entier dans le HTML.
 - **Alpine.js** : les expressions `x-data`, `x-bind`, `x-on` sont évaluées dans le scope du composant — pas de variable globale directe.
 - **Leaflet `invalidateSize()`** : doit être appelé après tout changement de visibilité du conteneur carte (navigation mobile, changement d'onglet).

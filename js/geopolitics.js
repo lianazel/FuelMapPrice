@@ -26,7 +26,7 @@ FMP.Geo = (function () {
 
   async function loadOilPrices() {
     try {
-      const res = await fetch(OIL_PRICES_URL, { cache: 'no-cache' });
+      const res = await FMP.Data.fetchWithTimeout(OIL_PRICES_URL, { cache: 'no-cache' }, 10000);
       if (!res.ok) {
         console.warn(`FMP.Geo: oil-prices.json HTTP ${res.status} — le fichier n'a peut-être pas encore été généré par l'Action GitHub.`);
         return null;
@@ -180,7 +180,7 @@ FMP.Geo = (function () {
     if (intl) {
       try {
         const url = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc`;
-        const res = await fetch(url);
+        const res = await FMP.Data.fetchWithTimeout(url, {}, 8000);
         if (res.ok) {
           const text = await res.text();
           if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
@@ -200,7 +200,7 @@ FMP.Geo = (function () {
     // Étape 1 : articles français
     try {
       const urlFr = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_FR)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc&sourcelang=french`;
-      const resFr = await fetch(urlFr);
+      const resFr = await FMP.Data.fetchWithTimeout(urlFr, {}, 8000);
       if (resFr.ok) {
         const text = await resFr.text();
         if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
@@ -218,7 +218,7 @@ FMP.Geo = (function () {
     if (articles.length < 5) {
       try {
         const urlEn = `${GDELT_BASE}?query=${encodeURIComponent(NEWS_QUERY_ALL)}&mode=artlist&maxrecords=${maxArticles}&format=json&sort=datedesc&sourcelang=english`;
-        const resEn = await fetch(urlEn);
+        const resEn = await FMP.Data.fetchWithTimeout(urlEn, {}, 8000);
         if (resEn.ok) {
           const text = await resEn.text();
           if (text.trim().startsWith('{') || text.trim().startsWith('[')) {

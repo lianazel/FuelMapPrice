@@ -8,6 +8,38 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.2] — 2026-05-22
+
+### Sécurité
+- **Timeouts sur tous les `fetch()` côté client** : nouveau helper
+  `FMP.Data.fetchWithTimeout(url, options, ms)` basé sur `AbortController`.
+  Appliqué aux 9 appels réseau (stations.json 15 s, history.json 10 s,
+  oil-prices 10 s, Nominatim 5 s, GDELT 8 s). Un serveur qui ne répond
+  plus n'immobilise plus l'app sur « Chargement… ».
+- **`encodeURIComponent()` sur les coordonnées d'itinéraire** : les URLs
+  Google Maps / Apple Plans construites dans les popups Leaflet passent
+  désormais lat/lon par `encodeURIComponent()`. Garde-fou
+  `Number.isFinite()` ajouté en amont de la boucle de rendu.
+- **Validation des inputs utilisateur** : le getter `filteredStations`
+  whiteliste `selectedFuel` contre la liste des 6 carburants connus,
+  clampe `radius` dans [5, 50] et `maxPrice` dans [0.5, 5.0]. Défense
+  contre une manipulation console envoyant des valeurs arbitraires
+  jusqu'à `FMP.Data.filterStations()`.
+- **Referrer policy** : `<meta name="referrer" content="strict-origin-when-cross-origin">`.
+  Seule l'origine `https://lianazel.github.io` fuit dans les `Referer`
+  vers les sites externes — plus le chemin ni les query strings.
+- **Protection zip bomb** : `fetch-data.py` lit la taille déclarée
+  (`ZipInfo.file_size`) avant d'extraire le XML interne et refuse les
+  archives dont le contenu décompressé dépasse 200 Mo.
+- **Validation des cours pétrole** : `fetch_oil_csv()` rejette les
+  prix hors [1, 500] USD et les dates futures ; les lignes invalides
+  sont silencieusement ignorées avec un compteur loggué.
+- **Documentation du risque Tailwind Play CDN** : nouveau point dans
+  la section « Pièges connus » de `CLAUDE.md` (mémoire collective du
+  compromis assumé pour la stratégie zéro-build).
+
+---
+
 ## [1.6.1] — 2026-05-22
 
 ### Sécurité

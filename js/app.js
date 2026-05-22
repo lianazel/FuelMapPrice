@@ -61,15 +61,30 @@ function fuelMapApp() {
     _lastQuery: '',            // \u00e9vite les requ\u00eates redondantes
     _radiusTimer: null,        // debounce pour le slider rayon
 
+    // Carburants reconnus — toute valeur hors liste retombe sur SP95.
+    // Whitelist appliquée à chaque lecture pour éviter qu'une manipulation
+    // console n'envoie une clé arbitraire vers s.prices[fuel].
+    VALID_FUELS: Object.freeze(['SP95', 'SP98', 'Gazole', 'E10', 'E85', 'GPLc']),
+
     // -------- Computed --------
     get filteredStations() {
       if (!this.refPoint || this.stations.length === 0) return [];
+
+      // Validation/clamp des inputs au passage de la frontière front → data.
+      // On NE mutate PAS this.* ici (déclencherait une boucle de réactivité Alpine) :
+      // on calcule des valeurs locales sûres puis on les passe à filterStations.
+      const fuel = this.VALID_FUELS.includes(this.selectedFuel) ? this.selectedFuel : 'SP95';
+      const radius = Math.max(5, Math.min(50, parseInt(this.radius, 10) || 10));
+      const maxPrice = (this.maxPrice != null && this.maxPrice !== '')
+        ? Math.max(0.5, Math.min(5.0, parseFloat(this.maxPrice) || 0))
+        : null;
+
       return FMP.Data.filterStations(
         this.stations,
         this.refPoint.lat, this.refPoint.lon,
-        this.selectedFuel,
-        this.radius,
-        this.maxPrice,
+        fuel,
+        radius,
+        maxPrice,
       );
     },
 

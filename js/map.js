@@ -135,6 +135,11 @@ FMP.Map = (function () {
     const prices = stations.map(s => s.price);
 
     for (const s of stations) {
+      // Garde-fou : coordonn\u00e9es non num\u00e9riques = station ignor\u00e9e. Aujourd'hui
+      // fetch-data.py garantit des floats, mais cette validation rend le
+      // template literal des URLs ci-dessous robuste \u00e0 toute \u00e9volution amont.
+      if (!Number.isFinite(s.lat) || !Number.isFinite(s.lon)) continue;
+
       const color = s.rupture ? '#6E7781' : priceColor(s.price, prices);
       const ruptBadge = s.rupture ? '<span class="fmp-marker-rupt">!</span>' : '';
       const icon = L.divIcon({
@@ -148,8 +153,11 @@ FMP.Map = (function () {
       const updatedStr = updated ? updated.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }) + ' ' + updated.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '\u2014';
 
       // URLs d'itin\u00e9raire : Google Maps (toujours) + Apple Plans (iOS uniquement)
-      const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}&travelmode=driving`;
-      const appleUrl  = `https://maps.apple.com/?daddr=${s.lat},${s.lon}&dirflg=d`;
+      // encodeURIComponent : d\u00e9fense en profondeur pour les coords inject\u00e9es en href
+      const safeLat = encodeURIComponent(s.lat);
+      const safeLon = encodeURIComponent(s.lon);
+      const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${safeLat},${safeLon}&travelmode=driving`;
+      const appleUrl  = `https://maps.apple.com/?daddr=${safeLat},${safeLon}&dirflg=d`;
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
       const ruptureTag = s.rupture

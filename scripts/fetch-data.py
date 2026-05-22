@@ -44,6 +44,16 @@ USER_AGENT = "FuelMapPrice/1.0 (+https://github.com)"
 # affiché par l'app jusqu'au prochain run réussi.
 MIN_PLAUSIBLE_STATIONS = 5000
 
+# Plafond de taille du XML interne d'une archive ZIP — défense contre
+# les zip bombs (quelques Ko qui décompressent en plusieurs Go et
+# saturent le runner). Le flux légitime pèse ~50 Mo.
+MAX_XML_SIZE = 200 * 1024 * 1024  # 200 Mo
+
+# Bornes de plausibilité des cours du pétrole — défense contre des
+# valeurs aberrantes injectées dans le CSV upstream (datasets/oil-prices).
+MIN_OIL_PRICE = 1.0       # USD/baril ; un cours sous 1 $ est invraisemblable
+MAX_OIL_PRICE = 500.0     # le pic historique (2008) plafonnait à ~147 $
+
 # Cours du pétrole (CSV publics, source EIA via datahub.io / GitHub datasets)
 BRENT_CSV_URL = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/brent-daily.csv"
 WTI_CSV_URL   = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
@@ -66,6 +76,14 @@ def download_xml() -> bytes:
             members = [n for n in z.namelist() if n.lower().endswith(".xml")]
             if not members:
                 raise RuntimeError("ZIP reçu mais aucun XML à l'intérieur.")
+            # Lecture de la taille déclarée avant extraction : un ZIP qui
+            # déclare 10 Go nous épargne d'allouer la mémoire pour le savoir.
+            info = z.getinfo(members[0])
+            if info.file_size > MAX_XML_SIZE:
+                raise RuntimeError(
+                    f"XML interne trop grand : {info.file_size:,} o "
+                    f"(plafond {MAX_XML_SIZE:,} o — protection zip bomb)."
+                )
             with z.open(members[0]) as f:
                 xml_bytes = f.read()
                 print(f"       → Archive ZIP détectée, XML extrait ({len(xml_bytes):,} o).")
@@ -247,15 +265,29 @@ def fetch_oil_csv(url: str) -> dict[str, float]:
     with urlopen(req, timeout=30) as r:
         text = r.read().decode("utf-8")
     reader = csv.DictReader(io.StringIO(text))
+    today_iso = datetime.now(timezone.utc).date().isoformat()
     prices: dict[str, float] = {}
+    skipped = 0
     for row in reader:
         date = row.get("Date") or row.get("date") or ""
         val  = row.get("Price") or row.get("price") or ""
-        if date and val:
-            try:
-                prices[date] = round(float(val), 2)
-            except ValueError:
-                continue
+        if not (date and val):
+            continue
+        try:
+            price = float(val)
+        except ValueError:
+            skipped += 1
+            continue
+        # Garde-fous : NaN, négatifs, plafond historique, dates futures.
+        if not (MIN_OIL_PRICE <= price <= MAX_OIL_PRICE):
+            skipped += 1
+            continue
+        if date > today_iso:
+            skipped += 1
+            continue
+        prices[date] = round(price, 2)
+    if skipped:
+        print(f"       ! {skipped} ligne(s) de cours ignorée(s) (plages invalides).")
     return prices
 
 

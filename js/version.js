@@ -10,9 +10,9 @@
 window.FMP = window.FMP || {};
 
 FMP.Version = {
-  number: '1.6.1',
+  number: '1.6.2',
   date:   '2026-05-22',              // YYYY-MM-DD : date du build
-  label:  'Security hardening (CSP + SRI + pipeline)',
+  label:  'Security hardening P2 (fetch timeout + input validation)',
 
   // URL du changelog sur GitHub — ouverte au clic sur le numéro de version
   changelogUrl: 'https://github.com/lianazel/FuelMapPrice/blob/main/CHANGELOG.md',
