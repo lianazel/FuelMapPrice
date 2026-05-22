@@ -8,6 +8,15 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.3] — 2026-05-22
+
+### Correctifs
+- Augmentation du timeout GDELT de 8s à 15s — le fil d'actualités énergie
+  était systématiquement vide depuis v1.6.2 (l'API GDELT, sans SLA, met
+  régulièrement 10 à 15 secondes à répondre).
+
+---
+
 ## [1.6.2] — 2026-05-22
 
 ### Sécurité
