@@ -165,10 +165,10 @@ FMP.Map = (function () {
         <div class="fmp-pop-fuel">${escapeHtml(fuelLabel)} \u00b7 ${s.distance.toFixed(1)} km</div>
         <div class="fmp-pop-time">maj ${updatedStr}</div>
         <div class="fmp-pop-routes">
-          <a class="fmp-pop-route fmp-pop-route-google" href="${googleUrl}" target="_blank" rel="noopener">
+          <a class="fmp-pop-route fmp-pop-route-google" href="${googleUrl}" target="_blank" rel="noopener noreferrer">
             ${routeNav}<span>Google Maps</span>
           </a>
-          ${isIOS ? `<a class="fmp-pop-route fmp-pop-route-apple" href="${appleUrl}" target="_blank" rel="noopener">
+          ${isIOS ? `<a class="fmp-pop-route fmp-pop-route-apple" href="${appleUrl}" target="_blank" rel="noopener noreferrer">
             ${routeNav}<span>Apple Plans</span>
           </a>` : ''}
         </div>

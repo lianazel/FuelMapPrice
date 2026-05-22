@@ -38,6 +38,12 @@ FUELS = ("Gazole", "SP95", "SP98", "E10", "E85", "GPLc")
 HISTORY_DAYS = 180        # 6 mois roulants
 USER_AGENT = "FuelMapPrice/1.0 (+https://github.com)"
 
+# Seuil plancher de plausibilité : le flux compte historiquement
+# ~10 000-11 000 stations. En dessous, on suspecte un XML tronqué ou
+# corrompu et on refuse d'écraser le JSON existant — qui restera
+# affiché par l'app jusqu'au prochain run réussi.
+MIN_PLAUSIBLE_STATIONS = 5000
+
 # Cours du pétrole (CSV publics, source EIA via datahub.io / GitHub datasets)
 BRENT_CSV_URL = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/brent-daily.csv"
 WTI_CSV_URL   = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
@@ -71,6 +77,15 @@ def download_xml() -> bytes:
 
 def parse_stations(xml_bytes: bytes) -> list[dict]:
     print("[2/4] Parsing XML…")
+
+    # Défense en profondeur contre XXE / billion laughs : le parseur stdlib
+    # xml.etree.ElementTree reste vulnérable aux entités externes et aux
+    # bombes d'entités. La source data.gouv.fr est de confiance, mais on
+    # refuse toute déclaration DOCTYPE / ENTITY dans l'en-tête du flux.
+    header = xml_bytes[:4096]
+    if b'<!DOCTYPE' in header or b'<!ENTITY' in header:
+        raise RuntimeError("XML refusé : DOCTYPE/ENTITY détecté (risque XXE).")
+
     # Les XML publiés sont parfois en ISO-8859-1 ; ElementTree gère via l'en-tête.
     root = ET.fromstring(xml_bytes)
 
@@ -294,6 +309,15 @@ def main() -> int:
         if not stations:
             print("ERREUR : aucune station exploitable dans le flux.", file=sys.stderr)
             return 2
+        if len(stations) < MIN_PLAUSIBLE_STATIONS:
+            # Garde-fou : on préfère conserver les dernières données valides
+            # plutôt que d'écraser le JSON avec un échantillon partiel.
+            print(
+                f"ERREUR : {len(stations)} stations seulement "
+                f"(seuil min {MIN_PLAUSIBLE_STATIONS}). Abandon, JSON existant préservé.",
+                file=sys.stderr,
+            )
+            return 3
         write_stations(stations)
         update_history(stations)
 

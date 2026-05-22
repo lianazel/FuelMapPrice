@@ -6,6 +6,25 @@
   <meta name="description" content="FuelMapPrice — Trouvez les stations-service les moins chères autour de vous, à partir des données officielles data.gouv.fr." />
   <meta name="theme-color" content="#FAF7F2" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0E1412" media="(prefers-color-scheme: dark)" />
+
+  <!--
+    Content Security Policy — défense en profondeur côté navigateur.
+    'unsafe-inline' + 'unsafe-eval' sont des compromis nécessaires pour
+    Tailwind Play CDN (compile le CSS dans le navigateur) et Alpine.js
+    (évalue les directives x-data, x-bind, etc.).
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com;
+    connect-src 'self' https://nominatim.openstreetmap.org https://donnees.roulez-eco.fr https://data.economie.gouv.fr https://api.gdeltproject.org;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com;
+    img-src 'self' data: https://*.tile.openstreetmap.org;
+    font-src https://fonts.gstatic.com;
+    frame-ancestors 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
   <title>FuelMapPrice — Le carburant au meilleur prix, près de chez vous</title>
 
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
@@ -19,8 +38,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <!-- Leaflet MarkerCluster -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="anonymous" />
 
   <!-- Tailwind (Play CDN — zero build) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -516,7 +537,7 @@
 
       <div class="fmp-news-grid" x-show="!geoNewsLoading && geoNews.length > 0">
         <template x-for="(article, idx) in geoNews" :key="idx">
-          <a :href="article.url" target="_blank" rel="noopener" class="fmp-news-card">
+          <a :href="article.url" target="_blank" rel="noopener noreferrer" class="fmp-news-card">
             <div class="fmp-news-card-body">
               <div class="fmp-news-card-source" x-text="article.source"></div>
               <h4 class="fmp-news-card-title" x-text="article.title"></h4>
@@ -527,7 +548,7 @@
       </div>
 
       <p class="mt-6 text-xs text-ink-faint">
-        Actualités fournies par <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener" class="underline hover:text-ink-soft">GDELT Project</a>.
+        Actualités fournies par <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener noreferrer" class="underline hover:text-ink-soft">GDELT Project</a>.
         Cours du pétrole : sources publiques agrégées par la GitHub Action.
       </p>
     </section>
@@ -679,7 +700,7 @@
               <span class="fmp-prefs-about-val" x-text="versionLabel"></span>
             </div>
             <div class="fmp-prefs-about-row" style="margin-top: 8px;">
-              <a :href="versionUrl" target="_blank" rel="noopener" class="fmp-prefs-about-link">
+              <a :href="versionUrl" target="_blank" rel="noopener noreferrer" class="fmp-prefs-about-link">
                 Voir l'historique complet des versions →
               </a>
             </div>
@@ -703,7 +724,7 @@
       <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col sm:flex-row justify-between gap-4 text-sm text-ink-soft">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span class="font-display font-semibold text-ink">FuelMapPrice</span>
-          <a :href="versionUrl" target="_blank" rel="noopener"
+          <a :href="versionUrl" target="_blank" rel="noopener noreferrer"
              class="font-mono text-xs px-2 py-0.5 rounded-full bg-line/60 hover:bg-forest/15 hover:text-forest transition"
              :title="'Version ' + versionNumber + ' — ' + versionDate + ' · Cliquer pour voir le changelog'">
             v<span x-text="versionNumber"></span>
@@ -744,9 +765,15 @@
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+          integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+          integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+          crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"
+          integrity="sha384-l8f0VcPi/M1iHPv8egOnY/15TDwqgbOR1anMIJWvU6nLRgZVLTLSaNqi/TOoT5Fh"
+          crossorigin="anonymous"></script>
 
   <!-- App logic -->
   <script src="js/version.js"></script>

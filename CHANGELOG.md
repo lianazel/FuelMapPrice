@@ -8,6 +8,38 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.1] — 2026-05-22
+
+### Sécurité
+- **Content Security Policy** : ajout d'une balise `<meta http-equiv="Content-Security-Policy">`
+  restreignant les origines de scripts, styles, fonts, images, connexions et
+  iframes. `frame-ancestors 'none'` bloque le clickjacking.
+- **Subresource Integrity (SRI)** : ajout des attributs `integrity` (SHA-384) et
+  `crossorigin="anonymous"` sur Chart.js, Alpine.js, MarkerCluster JS et CSS.
+  Une compromission de `unpkg.com` ou `cdn.jsdelivr.net` ne peut plus injecter
+  de code arbitraire dans l'application.
+- **Validation du schéma URL des actualités GDELT** : `formatArticles()` whitelise
+  les protocoles `http://` et `https://`. Tout autre schéma (`javascript:`,
+  `data:`, `vbscript:`…) est remplacé par `#` — défense contre une éventuelle
+  compromission de la réponse GDELT.
+- **`rel="noopener noreferrer"`** ajouté sur tous les liens externes
+  (popups Leaflet, fil d'actualités, lien changelog). Empêche la fuite de la
+  query string Nominatim (contenant le nom de ville) dans le `Referer`.
+- **GitHub Actions pinnées par hash** : `actions/checkout` et
+  `actions/setup-python` sont désormais référencées par hash de commit immuable,
+  protégeant le pipeline contre une compromission silencieuse d'un tag mutable
+  (cf. attaque tj-actions/changed-files, mars 2025).
+- **Protection XXE sur le parsing XML** : `fetch-data.py` refuse désormais
+  tout flux contenant une déclaration `<!DOCTYPE` ou `<!ENTITY` — défense en
+  profondeur contre les billion-laughs et les entités externes même si la
+  source data.gouv.fr est de confiance.
+- **Seuil de plausibilité** : `MIN_PLAUSIBLE_STATIONS = 5000`. Si le flux
+  XML est tronqué ou corrompu, le script abandonne (code 3) au lieu d'écraser
+  `stations.json` avec une liste partielle. Les dernières données valides
+  restent affichées jusqu'au prochain run réussi.
+
+---
+
 ## [1.6.0] — 2026-05-10
 
 ### Ajouté

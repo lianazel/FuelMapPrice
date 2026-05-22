@@ -240,14 +240,23 @@ FMP.Geo = (function () {
 
   function formatArticles(gdeltData) {
     if (!gdeltData || !gdeltData.articles) return [];
-    return gdeltData.articles.map(a => ({
-      title:    a.title || 'Sans titre',
-      url:      a.url || '#',
-      source:   a.domain || extractDomain(a.url),
-      date:     a.seendate ? parseGdeltDate(a.seendate) : null,
-      language: a.language || '?',
-      image:    a.socialimage || null,
-    }));
+    return gdeltData.articles.map(a => {
+      // Sécurité : n'accepter que les URLs http(s).
+      // GDELT contrôle ce champ ; en cas de compromission, un schéma
+      // javascript: / data: / vbscript: injecté dans un href produirait
+      // une exécution arbitraire au clic — on whitelist le protocole.
+      const rawUrl = (a.url || '').trim();
+      const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '#';
+
+      return {
+        title:    a.title || 'Sans titre',
+        url:      safeUrl,
+        source:   a.domain || extractDomain(a.url),
+        date:     a.seendate ? parseGdeltDate(a.seendate) : null,
+        language: a.language || '?',
+        image:    a.socialimage || null,
+      };
+    });
   }
 
   function parseGdeltDate(dateStr) {
