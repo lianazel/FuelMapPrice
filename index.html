@@ -233,7 +233,7 @@
               <span class="text-forest font-mono" x-text="radius + ' km'"></span>
             </label>
             <!-- Desktop: slider -->
-            <div class="hidden md:block">
+            <div class="hidden">
               <input type="range" min="5" max="50" step="5" x-model.number="radius"
                      class="w-full accent-forest" />
               <div class="flex justify-between text-[10px] text-ink-faint mt-0.5 font-mono">
@@ -241,7 +241,7 @@
               </div>
             </div>
             <!-- Mobile: boutons preset -->
-            <div class="flex md:hidden gap-1.5">
+            <div class="flex gap-1.5">
               <button @click="radius = 5"
                       :class="radius == 5 ? 'bg-forest text-cream border-forest' : 'bg-cream/60 text-ink-soft border-line hover:border-forest/50'"
                       class="flex-1 py-2 text-sm rounded-xl border font-mono font-medium transition">5</button>

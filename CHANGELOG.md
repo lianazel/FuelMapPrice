@@ -8,6 +8,15 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.6.4] — 2026-05-22
+
+### Modifié
+- **Sélecteur de rayon unifié** : le slider desktop est remplacé par les
+  5 boutons preset (5 / 10 / 20 / 30 / 50 km) déjà utilisés sur mobile.
+  Interface plus simple, plus cohérente entre les deux contextes.
+
+---
+
 ## [1.6.3] — 2026-05-22
 
 ### Correctifs
